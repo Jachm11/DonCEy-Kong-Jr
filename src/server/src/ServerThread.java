@@ -17,6 +17,21 @@ public class ServerThread extends Thread {
     public ServerThread(Socket socket) {
         this.socket = socket;
     }
+
+    public boolean testImput(String input){
+        if (input == null){
+            System.out.println("Null");
+            return true;
+        }
+        else{
+            if (input.equals("bye")){
+                return false;
+            }
+        }
+        //System.out.println("Not null,not bye");
+        return true;
+
+    }
  
     public void run() {
         try {
@@ -26,17 +41,15 @@ public class ServerThread extends Thread {
             OutputStream output = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(output, true);
  
- 
             String text;
  
             do {
                 text = reader.readLine();
-                String reverseText = new StringBuilder(text).reverse().toString();
-                writer.println("Server: " + reverseText);
+                writer.println("Server: " + text);
  
-            } while (!text.equals("bye"));
- 
+            } while (testImput(text));
             socket.close();
+
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
             ex.printStackTrace();
