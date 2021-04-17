@@ -125,6 +125,5 @@ int main(int argc, char *argv[])
 
     closesocket(cSocket);
     WSACleanup();
-    c = getch();
     return 0;
 }
