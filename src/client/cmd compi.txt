@@ -1,1 +1,2 @@
 g++ main.c -o myApp.exe -lwsock32 -lpthread
+g++ gui.c -o myGUI.exe -lgdi32 
