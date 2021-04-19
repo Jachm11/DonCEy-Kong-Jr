@@ -2,9 +2,12 @@
 package ServerApp;
 import java.awt.event.*;
 import javax.swing.*;
+import java.net.*;
+import java.io.*;
 public class App extends JFrame implements ActionListener
 {
 
+    private static final int PORT = 1108;
     // JTextField
     static JTextField t;
  
@@ -18,7 +21,7 @@ public class App extends JFrame implements ActionListener
     // label to display text
     static JLabel l;
 
-    Juego juego;
+    static Juego juego;
     // default constructor
     App()
     {
@@ -26,25 +29,42 @@ public class App extends JFrame implements ActionListener
     }
     public static void main(String[] args)
     {  
+        App te = new App();
+        f = new JFrame("textfield");
+        l = new JLabel("nothing entered");
+        b = new JButton("submit");
+        b2 = new JButton("go");
         
-         
-         f = new JFrame("textfield");
-         l = new JLabel("nothing entered");
-         b = new JButton("submit");
-         b2 = new JButton("go");
-         App te = new App();
-         b.addActionListener(te);
-         b2.addActionListener(te);
-         t = new JTextField(16);
-         JPanel p = new JPanel();
-         p.add(t);
-         p.add(b);
-         p.add(b2);
-         p.add(l);
-         f.add(p);
-         f.setSize(300, 300);
-  
-         f.show();
+        b.addActionListener(te);
+        b2.addActionListener(te);
+        t = new JTextField(16);
+        JPanel p = new JPanel();
+        p.add(t);
+        p.add(b);
+        p.add(b2);
+        p.add(l);
+        f.add(p);
+        f.setSize(300, 300);
+ 
+        f.show();
+        
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+ 
+            System.out.println("Server is listening on port " + PORT);
+ 
+            while (true) {
+                Socket socket = serverSocket.accept();
+                System.out.println("New client connected");
+ 
+                new ServerThread(socket).start();
+            }
+ 
+        } catch (IOException ex) {
+            System.out.println("Server exception: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+      
         
         /*System.out.println("Prueba:");
         System.out.println( 230 + ((50*(585 - 230))/100));
