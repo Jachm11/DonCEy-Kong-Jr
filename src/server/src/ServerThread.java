@@ -20,7 +20,7 @@ public class ServerThread extends Thread {
 
     public boolean testImput(String input){
         if (input == null){
-            System.out.println("Null");
+            //System.out.println("Null");
             return true;
         }
         else{
