@@ -31,13 +31,17 @@ HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg; //Utilities
 HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,hPlayerUpLImg; //player
 HBITMAP hEnemyBlueImg,hEnemyRedImg,hFruitImg; //Enemies
 HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hgame,hpoints,hlives;
+HWND elements[40], past[40];
+HBITMAP imgs[40];
 bool playing = false;
 bool connected = false;
 bool ready = true;
 bool sent = false;
 bool right = true;
 bool up = false;
-
+bool moving = false;
+int onScreenElem = 0;
+bool clean = false;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
 void addControls(HWND);
@@ -161,9 +165,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     //-----------
 
                     case VK_A:
+                        right = false;
                         sendToServer(VK_A);
                         break;
                     case VK_LEFT:
+                        right = false;
                         sendToServer(VK_A);
                         break;
 
@@ -179,9 +185,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     //-----------
 
                     case VK_D:
+                        right = true;
                         sendToServer(VK_D);
                         break;
                     case VK_RIGHT:
+                        right = true;   
                         sendToServer(VK_D);
                         break;
 
@@ -202,16 +210,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             ready = true;
             break;
         }
-
         case WM_ERASEBKGND:
-            return true;
+        {
+            return 1;
             break;
+        }
 
         case WM_TIMER:
 		{
+            InvalidateRect(hwnd, NULL, FALSE);
 			if (connected)
-            {     
-                //printf("efe");           
+            {              
                 update(hwnd);
             } 
             break;
@@ -393,21 +402,31 @@ void update(HWND hwnd)
     sent = false;
 
     iResult = recv(cSocket, recvbuf, recvbuflen, 0);
-        if ( iResult > 0 )
-        {
-            printf("Bytes received: %d\n", iResult);
-            printf(recvbuf);
-        }
-        else if ( iResult == 0 )
-        {
-            printf("Connection closed\n");
-        }
-        else
-        {
-            printf("recv failed with error: %d\n", WSAGetLastError());
-        }
 
-    InvalidateRect(hwnd, FALSE, TRUE);
+    if ( iResult > 0 )
+    {
+        printf("Bytes received: %d\n", iResult);
+        printf(recvbuf);
+    }
+    else if ( iResult == 0 )
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("recv failed with error: %d\n", WSAGetLastError());
+    }
+
+    for (int i = 0; i < onScreenElem ; i++)
+    {
+        ShowWindow(past[i],SW_HIDE);
+    }   
+
+   for(int loop = 0; loop < onScreenElem; loop++) 
+   {
+      past[loop] = elements[loop];
+   }
+   onScreenElem = 0;
 
     char * token = strtok(recvbuf, ";");
     int counter = 0;
@@ -424,6 +443,7 @@ void update(HWND hwnd)
     {
         setPositions(parts[i],i+1,hwnd);
     }
+    printf("hola >:v");
 
 }
 
@@ -516,16 +536,68 @@ void setPositions(char* token, int cases, HWND hwnd)
 void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
 {
     HBITMAP img;
-    int height = 150;
-    int width = 150;
+    int height = 50;
+    int width = 50;
         switch (imgCode)
         {
         case 0: //player
-            img = hPlayerRImg;
-            height = 150;
-            width = 150;
-            printf("Diddy en %d y %d \n",x,y);
+            if (x >= 1010 && y >= 100)
+            {
+               if(right)
+                {
+                    img = hPlayerUpRImg;
+                    printf("Diddy en %d y %d viendo derecha arriba\n",x,y);
+                }
+                else 
+                {
+                    img = hPlayerUpLImg;
+                    printf("Diddy en %d y %d viendo izquierda arriba \n",x,y);
+                }
+            }
+
+            else if (y >= 550 || y <= 230)
+            {
+                if(right && moving)
+                {
+                    img = hPlayerMoveRImg;
+                    printf("Diddy en %d y %d viendo derecha moviendose \n",x,y);
+                    moving = false;
+                }
+                else if(right) 
+                {
+                    img = hPlayerRImg;
+                    printf("Diddy en %d y %d viendo derecha quieto\n",x,y);
+                    moving = true;
+                }
+                else if(!right && moving) 
+                {
+                    img = hPlayerMoveLImg;
+                    printf("Diddy en %d y %d viendo izquierda moviendose \n",x,y);
+                    moving = false;
+                }
+                else 
+                {
+                    img = hPlayerLImg;
+                    printf("Diddy en %d y %d viendo izquierda quieto \n",x,y);
+                    moving = true;
+                }
+            }
+            else
+            {
+                if(right)
+                {
+                    img = hPlayerUpRImg;
+                    printf("Diddy en %d y %d en liana viendo derecha \n",x,y);
+                }
+                else 
+                {
+                    img = hPlayerUpLImg;
+                    printf("Diddy en %d y %d en liana viendo izquierda\n",x,y);
+                }
+            }
             break;
+
+
         case 1: // red enemy
             img = hEnemyRedImg;
             height = 150;
@@ -548,7 +620,12 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
         }
 
         HWND temp = CreateWindowW(L"Static",NULL,WS_VISIBLE|WS_CHILD|SS_BITMAP,x,y,width,height,hwnd,NULL,NULL,NULL);
-         SendMessageW(temp,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)img);
+        SendMessageW(temp,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)img);
+        elements[onScreenElem] = temp;
+        imgs[onScreenElem] = img;
+        onScreenElem++;
+
+        
 
 }
 

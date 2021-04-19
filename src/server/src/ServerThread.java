@@ -40,13 +40,45 @@ public class ServerThread extends Thread {
  
             OutputStream output = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(output, true);
- 
+            int i =0;
             String text;
  
             do {
                 text = reader.readLine();
 
-                writer.println("LIVES:2;POINTS:120;70,570;1,200,400:2,800,380;580,490");
+                if (i == 0 ){
+                    writer.println("LIVES:2;POINTS:120;70,570;1,200,400:2,800,380;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 1){
+                    writer.println("LIVES:2;POINTS:125;70,580;1,200,410:2,800,370;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 2){
+                    writer.println("LIVES:1;POINTS:130;70,590;1,200,420:2,800,360;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 3){
+                    writer.println("LIVES:2;POINTS:120;70,600;1,200,430:2,800,350;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 4){
+                    writer.println("LIVES:2;POINTS:120;70,620;1,200,440:2,800,340;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 5){
+                    writer.println("LIVES:2;POINTS:120;700,350;2,800,380;580,490");
+                    i = i + 1 ;
+                }
+                else if (i == 6){
+                    writer.println("LIVES:1;POINTS:120;70,570;1,200,450:2,800,330;580,490:280,490:1000,290");
+                    i = i + 1 ;
+                }
+                else if (i == 7){
+                    writer.println("LIVES:0;POINTS:120;70,570;1,200,400:2,800,320;580,490");
+                    i = 0;
+                }
+                
  
             } while (testImput(text));
             socket.close();
