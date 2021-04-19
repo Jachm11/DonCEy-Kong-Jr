@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <wchar.h>
+#include <gdiplus.h>
+#include <string.h> //For C
 #pragma comment(lib, "ws2_32.lib") //Winsock Library
 
 //Socket
@@ -24,12 +27,16 @@ const char g_szClassName[] = "myWindowClass";
 #define VK_D 0x44
 #define ID_TIMER 1
 
-HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg;
+HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg; //Utilities
+HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,hPlayerUpLImg; //player
+HBITMAP hEnemyBlueImg,hEnemyRedImg,hFruitImg; //Enemies
 HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hgame,hpoints,hlives;
 bool playing = false;
 bool connected = false;
 bool ready = true;
 bool sent = false;
+bool right = true;
+bool up = false;
 
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
@@ -37,9 +44,10 @@ void addControls(HWND);
 void loadImages();
 void sendToServer(int);
 bool initializeSocket();
-void update(HWND hwnd);
-void gameStart(HWND hwnd);
-
+void update(HWND);
+void gameStart(HWND);
+void windowSetNewImg(int, int, int,HWND);
+void setPositions(char*, int , HWND);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow)
@@ -253,11 +261,24 @@ void loadImages()
     hPlayBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\play.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
     hSpectBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\spect.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
     hExitBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\exit.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
-    //Game
+    //Game Bg
     hGameBgImg = (HBITMAP)LoadImageW(NULL,L"imgs\\gamebg.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    //Player
+    hPlayerRImg = (HBITMAP)LoadImageW(NULL,L"imgs\\stillr.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    hPlayerLImg = (HBITMAP)LoadImageW(NULL,L"imgs\\stilll.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+
+    hPlayerMoveRImg = (HBITMAP)LoadImageW(NULL,L"imgs\\mover.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    hPlayerMoveLImg = (HBITMAP)LoadImageW(NULL,L"imgs\\movel.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+
+    hPlayerUpRImg = (HBITMAP)LoadImageW(NULL,L"imgs\\upr.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    hPlayerUpLImg = (HBITMAP)LoadImageW(NULL,L"imgs\\upl.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    //Enemies
+    hEnemyBlueImg =  (HBITMAP)LoadImageW(NULL,L"imgs\\blue.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    hEnemyRedImg =  (HBITMAP)LoadImageW(NULL,L"imgs\\red.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    //Fruit
+    hFruitImg = (HBITMAP)LoadImageW(NULL,L"imgs\\fruit.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
 
 }
-
 
 bool initializeSocket()
 {
@@ -360,7 +381,6 @@ void update(HWND hwnd)
     
     if(!sent)
     {
-        printf("i tried");
         iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
 
         if (iResult == SOCKET_ERROR)
@@ -389,91 +409,142 @@ void update(HWND hwnd)
 
     InvalidateRect(hwnd, FALSE, TRUE);
 
-
     char * token = strtok(recvbuf, ";");
-    int counter = 1;
-    int x,y,imgCode;
-    bool lost = false;
+    int counter = 0;
+    //bool lost = false;
+    char* parts [5];
     // loop through the string to extract all other tokens
-    while( token != NULL && !lost ) {
-        printf( "%s\n", token ); //printing each token
-
-        switch (counter)
-        {
-        case 1: //Vidas
-            SetWindowTextW(hlives,(LPCWSTR)token);
-            if(strcmp('0',token)==1){
-                //end game
-                lost = true;
-            }
-            break;
-        case 2://Pts
-            SetWindowTextW(hpoints,(LPCWSTR)token);
-            break;
-        case 3://Player x,y
-            char * cord = strtok(token, ",");
-            x = atoi(cord);
-            cord = strtok(NULL, ",");
-            y = atoi(cord);
-            windowSetNewImg(x,y,100,100,0);
-            break;
-
-        case 4://enemies x,y
-            char * cocs = strtok(token, ":");
-            int type;
-            while( cocs != NULL ) 
-            {
-                char * coc = strtok(cocs, ",");
-                type = atoi(coc);
-                coc = strtok(NULL, ",");
-                x = atoi(coc);
-                coc = strtok(NULL, ",");
-                y = atoi(cord);
-            
-                windowSetNewImg(x,y,100,100,type);
-
-                cocs = strtok(NULL, ":");
-            }
-            break;
-       
-        case 5://fruits x,y
-            char * fruits = strtok(token, ":");
-            while( fruits != NULL )
-            {
-                char * fruit = strtok(fruits, ",");
-                x = atoi(fruit);
-                fruit = strtok(NULL, ",");
-                y = atoi(cord);
-            
-                windowSetNewImg(x,y,100,100,3);
-
-                fruits = strtok(NULL, ":");
-            }
-            break;
-        
-        default:
-            break;
-        }
-
+    while( token != NULL )
+    {
+        parts [counter] = token;
         counter++;
         token = strtok(NULL, ";");
+    }
+    for (int i = 0; i < 5 ; i++)
+    {
+        setPositions(parts[i],i+1,hwnd);
     }
 
 }
 
-void windowSetNewImg(int x, int y, int height, int width, int imgCode,HWND hwnd )
+void setPositions(char* token, int cases, HWND hwnd)
+{
+    int x,y;
+    int counter = 0;
+    char* things [15];
+    switch (cases)
+        {
+            case 1: //Vidas
+            {
+                wchar_t LivesBuffer[20];
+                mbstowcs(LivesBuffer, token, 20);
+
+                SetWindowTextW(hlives,LivesBuffer);
+                if(strcmp("0",token)==1)
+               {
+                    //end game
+                    //lost = true;
+                }
+                break;
+            }
+            case 2://Pts
+            {
+                wchar_t PointsBuffer[20];
+                mbstowcs(PointsBuffer, token, 20);
+
+                SetWindowTextW(hpoints,PointsBuffer);
+                break;
+            }
+            case 3://Player x,y
+            {
+                char * cord = strtok(token, ",");
+                x = atoi(cord);
+                cord = strtok(NULL, ",");
+                y = atoi(cord);
+                windowSetNewImg(x,y,0,hwnd);
+                break;
+            }
+            case 4://enemies x,y
+            {
+                char * cocs = strtok(token, ":");
+                int type;
+                while( cocs != NULL )
+                {
+                    things[counter] = cocs;
+                    counter++;
+                    cocs = strtok(NULL, ":");
+                }
+
+                for( int i = 0 ; i < counter ; i++ ) 
+                {
+                   char * coc = strtok(things[i], ",");
+                   type = atoi(coc);
+                   coc = strtok(NULL, ",");
+                   x = atoi(coc);
+                   coc = strtok(NULL, ",");
+                   y = atoi(coc);
+                
+                    windowSetNewImg(x,y,type,hwnd);
+                }
+                break;
+            }
+            case 5://fruits x,y
+            {
+                char * fruits = strtok(token, ":");
+                while( fruits  != NULL )
+                {
+                    things[counter] = fruits;
+                    counter++;
+                    fruits  = strtok(NULL, ":");
+                }
+
+                for( int i = 0 ; i < counter ; i++ ) 
+                {
+                   char *  fruit = strtok(things[i], ",");
+                   x = atoi(fruit);
+                   fruit = strtok(NULL, ",");
+                   y = atoi(fruit);
+                
+                    windowSetNewImg(x,y,3,hwnd);
+                }
+                break;
+        
+            }
+        }
+}
+
+void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
 {
     HBITMAP img;
+    int height = 150;
+    int width = 150;
         switch (imgCode)
         {
-        case 1:
-            img = hExitBImg;
-            height = 250;
-            width = 50;
+        case 0: //player
+            img = hPlayerRImg;
+            height = 150;
+            width = 150;
+            printf("Diddy en %d y %d \n",x,y);
+            break;
+        case 1: // red enemy
+            img = hEnemyRedImg;
+            height = 150;
+            width = 150;
+            printf("Rojo en %d y %d\n",x,y);
+            break;
+        case 2: // blue enemy
+            img = hEnemyBlueImg;
+            height = 150;
+            width = 150;
+            printf("Azul en %d y %d\n",x,y);
+            break;
+        case 3: //fruit
+            img = hFruitImg;
+            height = 150;
+            width = 150;
+            printf("Fruta en %d y %d\n",x,y);
             break;
 
-        default:
-        break;
         }
 
         HWND temp = CreateWindowW(L"Static",NULL,WS_VISIBLE|WS_CHILD|SS_BITMAP,x,y,width,height,hwnd,NULL,NULL,NULL);

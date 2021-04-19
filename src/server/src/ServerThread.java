@@ -46,7 +46,7 @@ public class ServerThread extends Thread {
             do {
                 text = reader.readLine();
 
-                writer.println("LIVES:2;POINTS:150;90,600;1,200,400:2,800,380;580,490");
+                writer.println("LIVES:2;POINTS:120;70,570;1,200,400:2,800,380;580,490");
  
             } while (testImput(text));
             socket.close();
