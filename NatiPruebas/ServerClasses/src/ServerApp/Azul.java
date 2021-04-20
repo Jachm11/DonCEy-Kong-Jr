@@ -4,7 +4,7 @@ public class Azul extends Cocodrilo
 {
     public Azul(Integer x_position, Integer y_position, Integer[] liana_position)
     {
-        this.velocidad = 20;
+        this.velocidad = 5;
         this.liana = liana_position;
         this.x = x_position;
         this.y = y_position;

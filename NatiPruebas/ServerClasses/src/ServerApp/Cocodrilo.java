@@ -24,11 +24,11 @@ public class Cocodrilo
     public void move(){}
     public void resetVelocidad()
     {
-        velocidad = 40;
+        velocidad = 5;
     }
     public void addVelocidad()
     {
-        velocidad = velocidad + 20;
+        velocidad = velocidad + 3;
     }
     public Integer getVelocidad()
     {

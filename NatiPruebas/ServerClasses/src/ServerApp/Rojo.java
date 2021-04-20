@@ -5,7 +5,7 @@ public class Rojo extends Cocodrilo {
 
     public Rojo(Integer x_position, Integer y_position, Integer[] liana_position)
     {
-        this.velocidad = 20;
+        this.velocidad = 5;
         this.down = true;
         this.liana = liana_position;
         this.x = x_position;
