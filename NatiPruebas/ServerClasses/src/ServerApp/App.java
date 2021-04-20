@@ -64,39 +64,6 @@ public class App extends JFrame implements ActionListener
             ex.printStackTrace();
         }
 
-      
-        
-        /*System.out.println("Prueba:");
-        System.out.println( 230 + ((50*(585 - 230))/100));
-        juego.crear_fruta(1, 100);
-        juego.crear_cocodrilo("1", 2, 0);
-        for(int i =0; i<9; i++)
-        {
-            
-            System.out.println(juego.game_str());
-            juego.move_player("d");
-            
-        }
-        //juego.eliminar_cocodrilo("1", 2);
-        
-        System.out.println("------------");
-        for(int i =0; i<50; i++)
-        {
-            
-            System.out.println(juego.game_str());
-            juego.move_player("w");
-            
-        }
-        for(int i =0; i<30; i++)
-        {
-            
-            System.out.println(juego.game_str());
-            juego.move_player("a");
-            
-        }*/
-        
-        
-         
     }
     @Override
     public void actionPerformed(ActionEvent e) {
