@@ -20,6 +20,8 @@ SOCKET cSocket;
 const char g_szClassName[] = "myWindowClass";
 #define CONNECT_AS_PLAYER    11
 #define CONNECT_AS_SPECTATOR 10
+#define CONNECT_TO_1         12
+#define CONNECT_TO_2         21
 #define CLOSE_APP 100
 #define VK_W 0x57
 #define VK_A 0x41
@@ -27,11 +29,11 @@ const char g_szClassName[] = "myWindowClass";
 #define VK_D 0x44
 #define ID_TIMER 1
 
-HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg,hGameoverImg; //Utilities
+HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg,hServerBgImg,hServer1Img,hServer2Img,hGameoverImg; //Utilities
 HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,hPlayerUpLImg; //player
 HBITMAP hEnemyBlueImg,hEnemyRedImg,hFruitImg; //Enemies
 HWND hwnd;
-HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hgame,hpoints,hlives;
+HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hbutt_srv1,hbutt_srv2,hgame,hpoints,hlives;
 HWND elements[40], past[40];
 HBITMAP imgs[40];
 bool playing = false;
@@ -42,6 +44,7 @@ bool right = true;
 bool up = false;
 bool moving = false;
 int onScreenElem = 0;
+int server;
 bool clean = false;
 bool lost = false;
 
@@ -49,12 +52,15 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
 void addControls(HWND);
 void loadImages();
 void sendToServer(int);
-bool initializeSocket();
+void readFromServer();
+void initializeSocket();
 void update(HWND);
+void serverSelect();
 void gameStart(HWND);
 void windowSetNewImg(int, int, int,HWND);
 void setPositions(char*, int , HWND);
 void endGame();
+char recvbuf[DEFAULT_BUFLEN];
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow)
@@ -120,9 +126,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             UINT ret;
             loadImages();
             addControls(hwnd);
-            ret = SetTimer(hwnd, ID_TIMER, 250, NULL);
+            ret = SetTimer(hwnd, ID_TIMER, 15, NULL);
 			if(ret == 0)
 				MessageBox(hwnd, "Could not SetTimer()!", "Error", MB_OK | MB_ICONEXCLAMATION);
+            ShowWindow(hbutt_srv1,SW_HIDE);
+            ShowWindow(hbutt_srv2,SW_HIDE);
             break;
         
         
@@ -133,12 +141,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 case CONNECT_AS_PLAYER:
                     playing = true;  
                     initializeSocket();
-                    gameStart(hwnd);
                     break;
 
                 case CONNECT_AS_SPECTATOR:
                     playing = false;
                     initializeSocket();
+                    break;
+
+                case CONNECT_TO_1:
+                    sendToServer(1);
+                    readFromServer();
+                    gameStart(hwnd);
+                    break;
+
+                case CONNECT_TO_2:
+                    sendToServer(2);
+                    readFromServer();
                     gameStart(hwnd);
                     break;
                 
@@ -262,6 +280,13 @@ void addControls(HWND hwnd)
     hbutt_exit = CreateWindowW(L"Button",NULL,WS_VISIBLE|WS_CHILD|BS_BITMAP,850,600,250,50,hwnd,(HMENU)CLOSE_APP,NULL,NULL);
      SendMessageW(hbutt_exit,BM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hExitBImg);
 
+    //Sever select buttons
+    hbutt_srv1 = CreateWindowW(L"Button",NULL,WS_VISIBLE|WS_CHILD|BS_BITMAP,50,500,250,50,hwnd,(HMENU)CONNECT_TO_1,NULL,NULL);
+     SendMessageW(hbutt_srv1,BM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hServer1Img);
+
+    hbutt_srv2 = CreateWindowW(L"Button",NULL,WS_VISIBLE|WS_CHILD|BS_BITMAP,950,500,250,50,hwnd,(HMENU)CONNECT_TO_2,NULL,NULL);
+     SendMessageW(hbutt_srv2,BM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hServer2Img);
+
         
 }
 
@@ -272,6 +297,10 @@ void loadImages()
     hPlayBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\play.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
     hSpectBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\spect.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
     hExitBImg = (HBITMAP)LoadImageW(NULL,L"imgs\\exit.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
+    //Server select
+    hServerBgImg = (HBITMAP)LoadImageW(NULL,L"imgs\\serverbg.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
+    hServer1Img = (HBITMAP)LoadImageW(NULL,L"imgs\\server1.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
+    hServer2Img = (HBITMAP)LoadImageW(NULL,L"imgs\\server2.bmp",(IMAGE_BITMAP),250,50,LR_LOADFROMFILE);
     //Game Bg
     hGameBgImg = (HBITMAP)LoadImageW(NULL,L"imgs\\gamebg.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
     hGameoverImg = (HBITMAP)LoadImageW(NULL,L"imgs\\gameover.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
@@ -290,10 +319,9 @@ void loadImages()
     //Fruit
     hFruitImg = (HBITMAP)LoadImageW(NULL,L"imgs\\fruit.bmp",(IMAGE_BITMAP),0,0,LR_LOADFROMFILE);
     
-
 }
 
-bool initializeSocket()
+void initializeSocket()
 {
     WSADATA wsa;
     struct sockaddr_in server;
@@ -304,7 +332,7 @@ bool initializeSocket()
         printf("Failed. Error Code : %d.\n", WSAGetLastError());
         MessageBox(hwnd, "Failed. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
-        return false;
+     
     }
 
     printf("Initialised.\n");
@@ -316,7 +344,7 @@ bool initializeSocket()
         MessageBox(hwnd, "Failed: Could not create socket. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
         WSACleanup();
-        return false;
+     
     }
     printf("Socket created. Connecting...\n");
     memset(&server, 0, sizeof server);
@@ -332,13 +360,13 @@ bool initializeSocket()
         SendMessageW(hwnd,WM_CLOSE,0,0);
         closesocket(cSocket);
         WSACleanup();
-        return false;
+      
     }
 
     printf("Connetion succesful.\n");
-    connected = true;
-    sendToServer(0);
-    return true;
+    serverSelect();
+    
+
 }
 
 void sendToServer(int key)
@@ -350,6 +378,9 @@ void sendToServer(int key)
     const char *sends = "Tecla s\n";
     const char *sendd = "Tecla d\n";
     const char *sende = "Tecla e\n";
+
+    const char *send1= "1\n";
+    const char *send2= "2\n";
 
     if(playing && ready)
     {
@@ -375,12 +406,29 @@ void sendToServer(int key)
                 iResult = send( cSocket, sende, (int)strlen(sende), 0 );
                 sent = true;
                 break;
+            
             default:
                 iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
                 sent = true;
                 break;
         }
-        if (iResult == SOCKET_ERROR)
+        
+    }
+
+    switch (key)
+    {
+    case 1:
+        iResult = send( cSocket, send1, (int)strlen(send1), 0 );
+        break;
+    case 2:
+        iResult = send( cSocket, send2, (int)strlen(send2), 0 );
+        break;
+    
+    default:
+        break;
+    }
+
+    if (iResult == SOCKET_ERROR)
         {
             printf("send failed with error: %d\n", WSAGetLastError());
             closesocket(cSocket);
@@ -388,33 +436,13 @@ void sendToServer(int key)
             MessageBox(hwnd, "Failed: Lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
             SendMessageW(hwnd,WM_CLOSE,0,0);
         }
-    }
       
 }
 
-void update(HWND hwnd)
+void readFromServer()
 {
     int iResult;
-    char recvbuf[DEFAULT_BUFLEN];
     int recvbuflen = DEFAULT_BUFLEN;
-    const char *sendbuff = "Tecla\n";
-    
-    
-    if(!sent)
-    {
-        iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
-
-        if (iResult == SOCKET_ERROR)
-            {
-                printf("send failed with error: %d\n", WSAGetLastError());
-                closesocket(cSocket);
-                WSACleanup();
-                MessageBox(hwnd, "Failed: lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
-                SendMessageW(hwnd,WM_CLOSE,0,0);
-            } 
-    }
-    sent = false;
-
     iResult = recv(cSocket, recvbuf, recvbuflen, 0);
 
     if ( iResult > 0 )
@@ -433,6 +461,30 @@ void update(HWND hwnd)
         MessageBox(hwnd, "Failed to contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
+    iResult;
+}
+
+void update(HWND hwnd)
+{
+    int iResult;
+    const char *sendbuff = "Tecla\n";
+    
+    if(!sent)
+    {
+        iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
+
+        if (iResult == SOCKET_ERROR)
+            {
+                printf("send failed with error: %d\n", WSAGetLastError());
+                closesocket(cSocket);
+                WSACleanup();
+                MessageBox(hwnd, "Failed: lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+                SendMessageW(hwnd,WM_CLOSE,0,0);
+            } 
+    }
+    sent = false;
+
+    readFromServer();
 
     //Erase past elements off the window
     for (int i = 0; i < onScreenElem ; i++)
@@ -440,6 +492,7 @@ void update(HWND hwnd)
         ShowWindow(past[i],SW_HIDE);
     }   
 
+    //Move current elements to past
    for(int loop = 0; loop < onScreenElem; loop++) 
    {
       past[loop] = elements[loop];
@@ -653,15 +706,35 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
     }
 }
 
-void gameStart(HWND hwnd)
+void serverSelect()
 {
+    SendMessageW(hBg,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hServerBgImg);
+    ShowWindow(hbutt_srv1,SW_SHOW);
+    ShowWindow(hbutt_srv2,SW_SHOW);
     ShowWindow(hbutt_play,SW_HIDE);
     ShowWindow(hbutt_spect,SW_HIDE);
     ShowWindow(hbutt_exit,SW_HIDE);
+}
+
+void gameStart(HWND hwnd)
+{
+    ShowWindow(hbutt_srv1,SW_HIDE);
+    ShowWindow(hbutt_srv2,SW_HIDE);
     SendMessageW(hBg,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hGameBgImg);
 
-    hpoints = CreateWindowW(L"Static",L"POINTS:",WS_VISIBLE|WS_CHILD,900,20,100,20,hwnd,NULL,NULL,NULL);
-    hlives = CreateWindowW(L"Static",L"LIVES:",WS_VISIBLE|WS_CHILD,1100,20,100,20,hwnd,NULL,NULL,NULL);
+    if(strcmp(recvbuf,"lleno")==0)
+    {
+        MessageBox(hwnd, "Sorry! The server is full. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+        SendMessageW(hwnd,WM_CLOSE,0,0);
+    }
+    else
+    {
+        connected = true;
+
+        hpoints = CreateWindowW(L"Static",L"POINTS:",WS_VISIBLE|WS_CHILD,900,20,100,20,hwnd,NULL,NULL,NULL);
+        hlives = CreateWindowW(L"Static",L"LIVES:",WS_VISIBLE|WS_CHILD,1100,20,100,20,hwnd,NULL,NULL,NULL);
+    }
+
     
 }
 

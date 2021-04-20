@@ -44,6 +44,7 @@ public class ServerThread extends Thread {
             String text;
  
             do {
+
                 text = reader.readLine();
 
                 if (i == 0 ){
@@ -75,7 +76,7 @@ public class ServerThread extends Thread {
                     i = i + 1 ;
                 }
                 else if (i == 7){
-                    writer.println("LIVES:0;POINTS:120;70,570;1,200,400:2,800,320;580,490");
+                    writer.println("LIVES:1;POINTS:120;70,570;1,200,400:2,800,320;580,490");
                     i = 0;
                 }
                 
