@@ -406,11 +406,9 @@ void sendToServer(int key)
                 iResult = send( cSocket, sende, (int)strlen(sende), 0 );
                 sent = true;
                 break;
-            
             default:
                 iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
-                sent = true;
-                break;
+                break;   
         }
         
     }
@@ -423,9 +421,10 @@ void sendToServer(int key)
     case 2:
         iResult = send( cSocket, send2, (int)strlen(send2), 0 );
         break;
-    
+
     default:
-        break;
+        iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
+        break; 
     }
 
     if (iResult == SOCKET_ERROR)
@@ -458,7 +457,7 @@ void readFromServer()
     else
     {
         printf("recv failed with error: %d\n", WSAGetLastError());
-        MessageBox(hwnd, "Failed to contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+        MessageBox(hwnd, "Failed to read from server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
     iResult;

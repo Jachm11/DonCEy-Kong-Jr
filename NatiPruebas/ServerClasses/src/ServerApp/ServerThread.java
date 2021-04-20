@@ -77,6 +77,9 @@ public class ServerThread extends Thread {
                     writer.println(App.juego.game_str());
 
                 }
+                else{
+                    writer.println(App.juego.game_str());
+                }
                 /*if (i == 0 ){
                     writer.println("LIVES:2;POINTS:120;70,570;1,200,400:2,800,380;580,490");
                     i = i + 1 ;
