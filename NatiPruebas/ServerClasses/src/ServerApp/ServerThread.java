@@ -23,14 +23,13 @@ public class ServerThread extends Thread {
     public boolean testImput(String input){
         if (input == null){
             System.out.println("Null");
-            return true;
+            return false;
         }
         else{
             if (input.equals("bye")){
                 return false;
             }
         }
-        //System.out.println("Not null,not bye");
         return true;
 
     }
@@ -53,25 +52,25 @@ public class ServerThread extends Thread {
                     writer.println(App.juego.game_str()); 
 
                 }
-                if(text.equals("Tecla w"))
+                else if(text.equals("Tecla w"))
                 {
                     App.juego.move_player("w");
                     writer.println(App.juego.game_str());
 
                 }
-                if(text.equals("Tecla a"))
+                else if(text.equals("Tecla a"))
                 {
                     App.juego.move_player("a");
                     writer.println(App.juego.game_str());
 
                 }
-                if(text.equals("Tecla s"))
+                else if(text.equals("Tecla s"))
                 {
                     App.juego.move_player("s");
                     writer.println(App.juego.game_str());
 
                 }
-                if(text.equals("Tecla d"))
+                else if(text.equals("Tecla d"))
                 {
                     App.juego.move_player("d");
                     writer.println(App.juego.game_str());
@@ -80,40 +79,7 @@ public class ServerThread extends Thread {
                 else{
                     writer.println(App.juego.game_str());
                 }
-                /*if (i == 0 ){
-                    writer.println("LIVES:2;POINTS:120;70,570;1,200,400:2,800,380;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 1){
-                    writer.println("LIVES:2;POINTS:125;70,580;1,200,410:2,800,370;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 2){
-                    writer.println("LIVES:1;POINTS:130;70,590;1,200,420:2,800,360;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 3){
-                    writer.println("LIVES:2;POINTS:120;70,600;1,200,430:2,800,350;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 4){
-                    writer.println("LIVES:2;POINTS:120;70,620;1,200,440:2,800,340;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 5){
-                    writer.println("LIVES:2;POINTS:120;700,350;2,800,380;580,490");
-                    i = i + 1 ;
-                }
-                else if (i == 6){
-                    writer.println("LIVES:1;POINTS:120;70,570;1,200,450:2,800,330;580,490:280,490:1000,290");
-                    i = i + 1 ;
-                }
-                else if (i == 7){
-                    writer.println("LIVES:0;POINTS:120;70,570;1,200,400:2,800,320;580,490");
-                    i = 0;
-                }*/
                 
- 
             } while (testImput(text));
             socket.close();
 

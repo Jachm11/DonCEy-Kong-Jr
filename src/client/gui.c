@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
-#include <unistd.h>
-#include <pthread.h>
+//#include <unistd.h>
+//#include <pthread.h>
 #include <stdbool.h>
 #include <wchar.h>
 #include <gdiplus.h>
@@ -126,7 +126,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             UINT ret;
             loadImages();
             addControls(hwnd);
-            ret = SetTimer(hwnd, ID_TIMER, 15, NULL);
+            ret = SetTimer(hwnd, ID_TIMER, 50, NULL);
 			if(ret == 0)
 				MessageBox(hwnd, "Could not SetTimer()!", "Error", MB_OK | MB_ICONEXCLAMATION);
             ShowWindow(hbutt_srv1,SW_HIDE);
