@@ -26,7 +26,7 @@ public class Juego
         Liana liana_actual = getLiana(jugador.liana);
         if(command == "w")//up
         {
-            if(jugador.y > liana_actual.getPosicion()[1])
+            if(jugador.y >= liana_actual.getPosicion()[1])
             {
                 jugador.move_up();
             }           
@@ -34,7 +34,7 @@ public class Juego
         }
         else if(command == "s")//down
         {
-            if(jugador.y < liana_actual.getPosicion()[2])
+            if(jugador.y <= liana_actual.getPosicion()[2])
             {
                 jugador.move_down();
             }
@@ -43,7 +43,9 @@ public class Juego
         else if(command == "a")//left
         {
             Liana temp = getLiana(jugador.liana-1);
-            if(liana_actual.getId()>1)
+            if(((liana_actual.getId()>1) && (jugador.getY()>= temp.getPosicion()[1]) 
+                                        && (jugador.getY()< temp.getPosicion()[2]))
+                                        || (jugador.getY()<=145))
             {
                 jugador.move_sideways(temp.getPosicion()[0], temp.getId());
 
@@ -54,7 +56,9 @@ public class Juego
         else if(command == "d")//right
         {
             Liana temp = getLiana(jugador.liana+1);
-            if(liana_actual.getId()<10)
+            if((liana_actual.getId()<10) && (jugador.getY()>= temp.getPosicion()[1]) 
+                                         && (jugador.getY()< temp.getPosicion()[2]))
+                                         
             {
                 jugador.move_sideways(temp.getPosicion()[0], temp.getId());
 
@@ -68,7 +72,8 @@ public class Juego
         Integer y_inicial = temp.getPosicion()[1];
         Integer y_final = temp.getPosicion()[2];
         Integer newY =  y_inicial + ((y*(y_final - y_inicial))/100);
-        Fruta fruta = new Fruta(temp.getPosicion()[0],newY);
+        Integer pos_y = (newY/10)*10;
+        Fruta fruta = new Fruta(temp.getPosicion()[0],pos_y);
         frutas.add(fruta);
     }
     public void crear_cocodrilo(String tipo, Integer liana, Integer y)
@@ -91,8 +96,9 @@ public class Juego
         Integer y_inicial = temp.getPosicion()[1];
         Integer y_final = temp.getPosicion()[2];
         Integer newY =  y_inicial + ((y*(y_final - y_inicial))/100);
+        Integer pos_y = (newY/10)*10;
         
-        Rojo rojo = new Rojo(temp.getPosicion()[0],newY,temp.getPosicion());
+        Rojo rojo = new Rojo(temp.getPosicion()[0],pos_y,temp.getPosicion());
         cocodrilos.add(rojo);
 
        
@@ -103,8 +109,9 @@ public class Juego
         Integer y_inicial = temp.getPosicion()[1];
         Integer y_final = temp.getPosicion()[2];
         Integer newY =  y_inicial + ((y*(y_final - y_inicial))/100);
+        Integer pos_y = (newY/10)*10;
 
-        Azul azul = new Azul(temp.getPosicion()[0],newY,temp.getPosicion());
+        Azul azul = new Azul(temp.getPosicion()[0],pos_y,temp.getPosicion());
         cocodrilos.add(azul);
     }
 
@@ -135,7 +142,8 @@ public class Juego
         Integer y_inicial = temp.getPosicion()[1];
         Integer y_final = temp.getPosicion()[2];
         Integer newY = y_inicial + ((y*(y_final - y_inicial))/100);
-        String posicion = temp.getPosicion()[0] + "," + newY;
+        Integer pos_y = (newY/10)*10;
+        String posicion = temp.getPosicion()[0] + "," + pos_y;
         for(int i = 0; i< frutas.size();i++)
         {
             String id = frutas.get(i).getPosicion();
@@ -162,8 +170,8 @@ public class Juego
         Liana liana6 = new Liana(6, 690, 230, 420);
         Liana liana7 = new Liana(7, 813, 255, 510);
         Liana liana8 = new Liana(8, 935, 255, 465);
-        Liana liana9 = new Liana(9, 1055, 160, 510);
-        Liana liana10 = new Liana(10, 1178, 160, 510);
+        Liana liana9 = new Liana(9, 1055, 140, 510);
+        Liana liana10 = new Liana(10, 1178, 140, 510);
 
         this.lianas.add(liana1);
         this.lianas.add(liana2);
@@ -196,10 +204,10 @@ public class Juego
     }
     private void won()
     {
-        if(jugador.x<575 && jugador.y<160)
+        if(jugador.x<610 && jugador.y<=160)
         {
             System.out.println("Won!");
-            jugador.change_position(85, 585);
+            jugador.won();
             puntos = puntos + 1000;
             for(int i = 0; i< cocodrilos.size();i++)
             {
@@ -229,7 +237,10 @@ public class Juego
             String finalStr ="";
             for(int i = 0; i< frutas.size();i++)
             {
-                if(frutas.get(i).getPosicion().equals(jugador.getPosition()))
+                
+                //colision con jugador
+                //if(frutas.get(i).getPosicion().equals(jugador.getPosition()))
+                if(frutas.get(i).colision(jugador.getX(), jugador.getY()))
                 {
                     System.out.println("fruta eliminada");
                     puntos = puntos + frutas.get(i).getPuntos();
@@ -266,9 +277,10 @@ public class Juego
             for(int i = 0; i< cocodrilos.size();i++)
             {
                 //colision con jugador
-                String id = cocodrilos.get(i).getPosicion();
-                String newPos = id.split(",")[1] + "," + id.split(",")[2];
-                if(newPos.equals(jugador.getPosition()))
+                //String id = cocodrilos.get(i).getPosicion();
+                //String newPos = id.split(",")[1] + "," + id.split(",")[2];
+                //if(newPos.equals(jugador.getPosition()))
+                if(cocodrilos.get(i).colision(jugador.getX(), jugador.getY()))
                 {
                     jugador.hit();
                 }

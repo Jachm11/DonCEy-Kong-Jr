@@ -48,10 +48,17 @@ public class Jugador
     }
     public void hit()
     {
-        change_position(85, 385);
+        change_position(85, 585);
+        liana = 1;
         vidas--;
     }
-    public void change_position(Integer X, Integer Y)
+    public void won()
+    {
+        change_position(85, 585);
+        liana = 1;
+
+    }
+    private void change_position(Integer X, Integer Y)
     {
         this.x = X;
         this.y = Y;
@@ -67,5 +74,12 @@ public class Jugador
     {
         return this.vidas;
     }
-    
+    public Integer getX()
+    {
+        return this.x;
+    }
+    public Integer getY()
+    {
+        return this.y;
+    }
 }

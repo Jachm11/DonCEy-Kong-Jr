@@ -11,7 +11,7 @@ public class Cocodrilo
 
     public Boolean colision(Integer player_x, Integer player_y)
     {
-        if((player_x == this.x) && (player_y == this.y))
+        if((player_x == this.x) && (((this.y +20)> player_y) && ((this.y -20)< player_y)))
         {
             return true;
         }
@@ -28,7 +28,7 @@ public class Cocodrilo
     }
     public void addVelocidad()
     {
-        velocidad = velocidad + 3;
+        velocidad = velocidad + 5;
     }
     public Integer getVelocidad()
     {
