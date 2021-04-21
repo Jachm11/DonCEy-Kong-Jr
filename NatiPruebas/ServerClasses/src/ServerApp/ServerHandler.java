@@ -1,19 +1,22 @@
 package ServerApp;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.net.*;
+import java.io.*;
 
 public class ServerHandler extends Thread {
+    
+    public Juego miJuego;
+    public Boolean player;
+    public Integer count;
 
     private Integer port;
+    
 
-    public ServerHandler(Integer port) {
+    public ServerHandler(Integer port, Juego miJuego) {
         this.port = port;
+        this.miJuego = miJuego;
+        this.player = false;
+        count = 1;
     }
 
     public void run(){
@@ -22,11 +25,13 @@ public class ServerHandler extends Thread {
  
             System.out.println("Server is listening on port " + port);
  
-            while (true) {
+            while (count <= 3) {
                 Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
- 
-                new ServerThread(socket).start();
+                System.out.println("New client connected to port "+port);
+                count = count + 1 ;
+                ServerThread thread = new ServerThread(socket,this);
+                thread.start();
+
             }
  
         } catch (IOException ex) {
@@ -35,7 +40,4 @@ public class ServerHandler extends Thread {
         }
     }
 
-
-
-    
 }

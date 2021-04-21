@@ -12,8 +12,9 @@
 #pragma comment(lib, "ws2_32.lib") //Winsock Library
 
 //Socket
-#define PORT 1108
-#define DEFAULT_BUFLEN 512
+#define PORT1                1108
+#define PORT2                802
+#define DEFAULT_BUFLEN       512
 SOCKET cSocket;
 
 //GUI
@@ -22,12 +23,12 @@ const char g_szClassName[] = "myWindowClass";
 #define CONNECT_AS_SPECTATOR 10
 #define CONNECT_TO_1         12
 #define CONNECT_TO_2         21
-#define CLOSE_APP 100
-#define VK_W 0x57
-#define VK_A 0x41
-#define VK_S 0x53
-#define VK_D 0x44
-#define ID_TIMER 1
+#define CLOSE_APP            100
+#define VK_W                 0x57
+#define VK_A                 0x41
+#define VK_S                 0x53
+#define VK_D                 0x44
+#define ID_TIMER             1
 
 HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg,hServerBgImg,hServer1Img,hServer2Img,hGameoverImg; //Utilities
 HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,hPlayerUpLImg; //player
@@ -53,7 +54,7 @@ void addControls(HWND);
 void loadImages();
 void sendToServer(int);
 void readFromServer();
-void initializeSocket();
+void initializeSocket(int);
 void update(HWND);
 void serverSelect();
 void gameStart(HWND);
@@ -140,22 +141,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 case CONNECT_AS_PLAYER:
                     playing = true;  
-                    initializeSocket();
+                    serverSelect();
                     break;
 
                 case CONNECT_AS_SPECTATOR:
                     playing = false;
-                    initializeSocket();
+                    serverSelect();
                     break;
 
                 case CONNECT_TO_1:
-                    sendToServer(1);
+                    initializeSocket(1);
+                    sendToServer(0);
                     readFromServer();
                     gameStart(hwnd);
                     break;
 
                 case CONNECT_TO_2:
-                    sendToServer(2);
+                    initializeSocket(2);
+                    sendToServer(0);
                     readFromServer();
                     gameStart(hwnd);
                     break;
@@ -321,8 +324,19 @@ void loadImages()
     
 }
 
-void initializeSocket()
+void initializeSocket(int serverID)
 {
+    int port;
+
+    if(serverID == 1)
+    {
+        port = PORT1;
+    }
+    else if(serverID == 2)
+    {
+        port = PORT2;
+    }
+    
     WSADATA wsa;
     struct sockaddr_in server;
 
@@ -350,7 +364,7 @@ void initializeSocket()
     memset(&server, 0, sizeof server);
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
+    server.sin_port = htons(port);
 
     //Connect to remote server
     if (connect(cSocket, (struct sockaddr *)&server, sizeof(server)) < 0)
@@ -364,9 +378,7 @@ void initializeSocket()
     }
 
     printf("Connetion succesful.\n");
-    serverSelect();
     
-
 }
 
 void sendToServer(int key)
@@ -379,8 +391,9 @@ void sendToServer(int key)
     const char *sendd = "Tecla d\n";
     const char *sende = "Tecla e\n";
 
-    const char *send1= "1\n";
-    const char *send2= "2\n";
+    const char *sendplayer= "player\n";
+    const char *sendspectator= "spectator\n";
+    const char *sendspectator= "bye\n";
 
     if(playing && ready)
     {
@@ -405,21 +418,23 @@ void sendToServer(int key)
             case VK_SPACE:
                 iResult = send( cSocket, sende, (int)strlen(sende), 0 );
                 sent = true;
-                break;
-            default:
-                iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
-                break;   
+                break;  
         }
         
     }
 
     switch (key)
     {
-    case 1:
-        iResult = send( cSocket, send1, (int)strlen(send1), 0 );
-        break;
-    case 2:
-        iResult = send( cSocket, send2, (int)strlen(send2), 0 );
+    case 0:
+        if(playing)
+        {
+            iResult = send( cSocket, sendplayer, (int)strlen(sendplayer), 0 );
+            
+        }
+        else if(!playing)
+        {
+            iResult = send( cSocket, sendspectator, (int)strlen(sendspectator), 0 );
+        }
         break;
 
     default:
@@ -717,13 +732,18 @@ void serverSelect()
 
 void gameStart(HWND hwnd)
 {
-    ShowWindow(hbutt_srv1,SW_HIDE);
-    ShowWindow(hbutt_srv2,SW_HIDE);
-    SendMessageW(hBg,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hGameBgImg);
+    
 
-    if(strcmp(recvbuf,"lleno")==0)
+    if(strcmp(recvbuf,"pdenied")==0)
     {
-        MessageBox(hwnd, "Sorry! The server is full. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+        sendToServer(7);
+        MessageBox(hwnd, "Sorry! The server already has a player, you can try other server or spectate the game. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+        SendMessageW(hwnd,WM_CLOSE,0,0);
+    }
+    else if(strcmp(recvbuf,"sdenied")==0)
+    {
+        sendToServer(7);
+        MessageBox(hwnd, "Sorry! The server is still needs a player, no more spectators allowed. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
     else
@@ -734,7 +754,10 @@ void gameStart(HWND hwnd)
         hlives = CreateWindowW(L"Static",L"LIVES:",WS_VISIBLE|WS_CHILD,1100,20,100,20,hwnd,NULL,NULL,NULL);
     }
 
-    
+    ShowWindow(hbutt_srv1,SW_HIDE);
+    ShowWindow(hbutt_srv2,SW_HIDE);
+    SendMessageW(hBg,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)hGameBgImg);
+ 
 }
 
 void endGame(){

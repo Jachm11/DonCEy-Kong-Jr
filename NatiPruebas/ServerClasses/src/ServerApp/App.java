@@ -2,12 +2,10 @@
 package ServerApp;
 import java.awt.event.*;
 import javax.swing.*;
-import java.net.*;
-import java.io.*;
 public class App extends JFrame implements ActionListener
 {
 
-    private static final int PORT = 1108;
+    //private static final int PORT = 1108;
     // JTextField
     static JTextField t;
  
@@ -22,10 +20,15 @@ public class App extends JFrame implements ActionListener
     static JLabel l;
 
     static Juego juego;
+    static Juego juego2;
+
+    static ServerHandler server1;
+    static ServerHandler server2;
     // default constructor
     App()
     {
         juego = new Juego();
+        juego2 = new Juego();
     }
     public static void main(String[] args)
     {  
@@ -47,27 +50,18 @@ public class App extends JFrame implements ActionListener
         f.setSize(300, 300);
  
         f.show();
-        
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
- 
-            System.out.println("Server is listening on port " + PORT);
- 
-            while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
- 
-                new ServerThread(socket).start();
-            }
- 
-        } catch (IOException ex) {
-            System.out.println("Server exception: " + ex.getMessage());
-            ex.printStackTrace();
-        }
+
+        server1 = new ServerHandler(1108,juego);
+        server2 = new ServerHandler(802,juego2);
+
+        server1.start();
+        server2.start();
+
 
     }
     @Override
     public void actionPerformed(ActionEvent e) {
-        // TODO Auto-generated method stub
+        
         String s = e.getActionCommand();
         if (s.equals("submit")) 
         {
