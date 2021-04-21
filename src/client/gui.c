@@ -3,33 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
-//#include <unistd.h>
-//#include <pthread.h>
 #include <stdbool.h>
 #include <wchar.h>
 #include <gdiplus.h>
 #include <string.h> //For C
+#include "constantes.h"
 #pragma comment(lib, "ws2_32.lib") //Winsock Library
 
 //Socket
-#define PORT1                1108
-#define PORT2                802
-#define DEFAULT_BUFLEN       512
 SOCKET cSocket;
+char recvbuf[DEFAULT_BUFLEN];
 
 //GUI
 const char g_szClassName[] = "myWindowClass";
-#define CONNECT_AS_PLAYER    11
-#define CONNECT_AS_SPECTATOR 10
-#define CONNECT_TO_1         12
-#define CONNECT_TO_2         21
-#define CLOSE_APP            100
-#define VK_W                 0x57
-#define VK_A                 0x41
-#define VK_S                 0x53
-#define VK_D                 0x44
-#define ID_TIMER             1
-
 HBITMAP hBgImg, hPlayBImg,hSpectBImg,hExitBImg,hGameBgImg,hServerBgImg,hServer1Img,hServer2Img,hGameoverImg; //Utilities
 HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,hPlayerUpLImg; //player
 HBITMAP hEnemyBlueImg,hEnemyRedImg,hFruitImg; //Enemies
@@ -37,31 +23,94 @@ HWND hwnd;
 HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hbutt_srv1,hbutt_srv2,hgame,hpoints,hlives;
 HWND elements[40], past[40];
 HBITMAP imgs[40];
-bool playing = false;
-bool connected = false;
-bool ready = true;
-bool sent = false;
-bool right = true;
-bool up = false;
-bool moving = false;
-int onScreenElem = 0;
-int server;
-bool clean = false;
-bool lost = false;
 
+/**
+ * @brief Estructura que controla todos los flags del juego
+ * 
+ */
+struct gameState {
+
+    bool playing;
+    bool connected;
+    bool ready;
+    bool sent;
+    bool right;
+    bool up;
+    bool moving;
+    int onScreenElem;
+    int onScreenPastElem;
+    bool clean;
+    bool lost;
+    int lastX;
+    int animCount;
+
+};
+
+struct gameState game;
+
+/**
+ * @brief Loop default de win32
+ * 
+ * @return LRESULT 
+ */
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
+/**
+ * @brief Agrega todos los concontroles a la interfaz grafica en la ventana HWND
+ * 
+ * 
+ */
 void addControls(HWND);
+/**
+ * @brief Carga todas las imagenes de la interfaz grafica
+ * 
+ */
 void loadImages();
+/**
+ * @brief Funcion que se encarga de generar y enviar los mensajes al servidor
+ * 
+ */
 void sendToServer(int);
+/**
+ * @brief Funcion que se encarga de leer los mensajes del servidor y cargalos al buffer (recvbuff)
+ * 
+ */
 void readFromServer();
+/**
+ * @brief Inicializa un socket para un puerto espacifico determinado por el usuario al escoger un servidor
+ * 
+ */
 void initializeSocket(int);
+/**
+ * @brief Funcion que se ejecuta cada vez que termina el timer. Elimina todas las imagenes cargadas en la iteracion pasada y carga las 
+ * nuevas imagenes segun lo especificado por el servidor
+ * 
+ */
 void update(HWND);
+/**
+ * @brief Funcion que esconde los botones de la pantalla de titulo y muestra el fondo y los botones de la seleccion de servidor
+ * 
+ */
 void serverSelect();
+/**
+ * @brief Funcion que esconde los botones de la pantalla de seleccion de servidor y muestra el fondo y los textos de juego
+ * 
+ */
 void gameStart(HWND);
+/**
+ * @brief Funcion que muestra una imagen determinada por el codigo de imagen y posiciones X y Y en Hwnd
+ * 
+ */
 void windowSetNewImg(int, int, int,HWND);
+/**
+ * @brief Parser del mensaje del servidor. Extrae todos los detalles que deben ser mostrados durante el ciclo de update
+ * 
+ */
 void setPositions(char*, int , HWND);
+/**
+ * @brief Muestra la pantalla de derrota
+ * 
+ */
 void endGame();
-char recvbuf[DEFAULT_BUFLEN];
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow)
@@ -81,6 +130,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+    game.playing          = false;
+    game.connected        = false;
+    game.ready            = true;
+    game.sent             = false;
+    game.right            = true;
+    game.up               = false;
+    game.moving           = false;
+    game.onScreenElem     = 0;
+    game.onScreenPastElem = 0;
+    game.clean            = false;
+    game.lost             = false;
+    game.lastX            = 85;
+    game.animCount        = 0;
 
     if(!RegisterClassEx(&wc))
     {
@@ -123,7 +186,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
-        case WM_CREATE:
+        case WM_CREATE: //Al crear la ventana
             UINT ret;
             loadImages();
             addControls(hwnd);
@@ -135,17 +198,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
         
         
-        case WM_COMMAND:
+        case WM_COMMAND: // Comandos especificos de botones
 
             switch (wParam)
             {
                 case CONNECT_AS_PLAYER:
-                    playing = true;  
+                    game.playing = true;  
                     serverSelect();
                     break;
 
                 case CONNECT_AS_SPECTATOR:
-                    playing = false;
+                    game.playing = false;
                     serverSelect();
                     break;
 
@@ -171,9 +234,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
 
-        case WM_KEYDOWN:
+        case WM_KEYDOWN: // Al presionar una tecla
         {
-            if (playing)
+            if (game.playing && game.ready)
             {
                 switch (wParam)
                 {
@@ -188,11 +251,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     //-----------
 
                     case VK_A:
-                        right = false;
+                        //game.right = false;
                         sendToServer(VK_A);
                         break;
                     case VK_LEFT:
-                        right = false;
+                        //game.right = false;
                         sendToServer(VK_A);
                         break;
 
@@ -208,11 +271,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     //-----------
 
                     case VK_D:
-                        right = true;
+                        //game.right = true;
                         sendToServer(VK_D);
                         break;
                     case VK_RIGHT:
-                        right = true;   
+                        //game.right = true;   
                         sendToServer(VK_D);
                         break;
 
@@ -222,27 +285,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         sendToServer(VK_SPACE);
                         break;
                 }
+                game.ready = false;
             }   
             
-            ready = false;
+            
 
             break;
         }
-        case WM_KEYUP:
+        case WM_KEYUP: // Al liberar la tecla
         {
-            ready = true;
+            game.ready = true;
             break;
         }
-        case WM_ERASEBKGND:
+        case WM_ERASEBKGND: // Evita el flicker de las imagenes
         {
             return 1;
             break;
         }
 
-        case WM_TIMER:
+        case WM_TIMER: // Al terminar el timer
 		{
             InvalidateRect(hwnd, NULL, FALSE);
-			if (connected)
+			if (game.connected)
             {              
                 update(hwnd);
             } 
@@ -250,12 +314,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
   
 		case WM_CLOSE:
+            //sendToServer(1);
             closesocket(cSocket);
             WSACleanup();   
 			DestroyWindow(hwnd);
 		    break;
 
 		case WM_DESTROY:
+            //sendToServer(1);
+            closesocket(cSocket);
+            WSACleanup();
 			PostQuitMessage(0);
 		    break;
 
@@ -393,63 +461,78 @@ void sendToServer(int key)
 
     const char *sendplayer= "player\n";
     const char *sendspectator= "spectator\n";
-    const char *sendspectator= "bye\n";
+    const char *sendbye= "bye\n";
 
-    if(playing && ready)
+    if(game.playing && game.ready)
     {
         switch (key)
         {
             case VK_W:
                 iResult = send( cSocket, sendw, (int)strlen(sendw), 0 );
-                sent = true;
+                printf("msg w enviado");
+                game.sent = true;
                 break;
             case VK_A:
                 iResult = send( cSocket, senda, (int)strlen(senda), 0 );
-                sent = true;
+                printf("msg enviado");
+                game.sent = true;
                 break;
             case VK_S:
                 iResult = send( cSocket, sends, (int)strlen(sends), 0 );
-                sent = true;
+                printf("msg enviado");
+                game.sent = true;
                 break;
             case VK_D:
                 iResult = send( cSocket, sendd, (int)strlen(sendd), 0 );
-                sent = true;
+                printf("msg enviado");
+                game.sent = true;
                 break;
             case VK_SPACE:
                 iResult = send( cSocket, sende, (int)strlen(sende), 0 );
-                sent = true;
+                printf("msg enviado");
+                game.sent = true;
                 break;  
         }
-        
     }
 
     switch (key)
     {
     case 0:
-        if(playing)
+        if(game.playing)
         {
             iResult = send( cSocket, sendplayer, (int)strlen(sendplayer), 0 );
+            printf("msg enviado");
             
         }
-        else if(!playing)
+        else if(!game.playing)
         {
             iResult = send( cSocket, sendspectator, (int)strlen(sendspectator), 0 );
+            printf("msg enviado");
         }
+        break;
+    case 1:
+        iResult = send( cSocket, sendbye, (int)strlen(sendbye), 0 );
+        printf("msg enviado");
         break;
 
     default:
-        iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
-        break; 
+        if(!game.sent)
+        {
+            iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
+            printf("msg update enviado");
+        }
+        break;   
     }
 
     if (iResult == SOCKET_ERROR)
         {
+            game.connected = false;
             printf("send failed with error: %d\n", WSAGetLastError());
-            closesocket(cSocket);
-            WSACleanup();
             MessageBox(hwnd, "Failed: Lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
             SendMessageW(hwnd,WM_CLOSE,0,0);
+            
         }
+
       
 }
 
@@ -472,10 +555,10 @@ void readFromServer()
     else
     {
         printf("recv failed with error: %d\n", WSAGetLastError());
+        game.connected = false;
         MessageBox(hwnd, "Failed to read from server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
-    iResult;
 }
 
 void update(HWND hwnd)
@@ -483,35 +566,54 @@ void update(HWND hwnd)
     int iResult;
     const char *sendbuff = "Tecla\n";
     
-    if(!sent)
-    {
-        iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
+    //if(!game.sent)
+    //{
+        //iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
 
-        if (iResult == SOCKET_ERROR)
-            {
-                printf("send failed with error: %d\n", WSAGetLastError());
-                closesocket(cSocket);
-                WSACleanup();
-                MessageBox(hwnd, "Failed: lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
-                SendMessageW(hwnd,WM_CLOSE,0,0);
-            } 
-    }
-    sent = false;
+        //if (iResult == SOCKET_ERROR)
+          //  {
+               // game.connected = false;
+               // printf("send failed with error: %d\n", WSAGetLastError());
+               // MessageBox(hwnd, "Failed: lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+                //SendMessageW(hwnd,WM_CLOSE,0,0);
+            //} 
+    //}
+   // game.sent = false;
 
+    if (!game.sent) sendToServer(100);
     readFromServer();
+    game.sent = false;
+
+    //animation control
+    if(game.animCount > 8)
+    {
+        if(game.moving)
+        {
+            game.moving = false;
+        }
+        else
+        {
+            game.moving = true;
+        }
+
+        game.animCount = 0;
+    }
+
+    game.animCount++;
 
     //Erase past elements off the window
-    for (int i = 0; i < onScreenElem ; i++)
+    for (int i = 0; i < game.onScreenPastElem ; i++)
     {
         ShowWindow(past[i],SW_HIDE);
     }   
 
     //Move current elements to past
-   for(int loop = 0; loop < onScreenElem; loop++) 
+   for(int loop = 0; loop < game.onScreenElem; loop++) 
    {
       past[loop] = elements[loop];
    }
-   onScreenElem = 0;
+   game.onScreenPastElem = game.onScreenElem;
+   game.onScreenElem = 0;
 
     char * token = strtok(recvbuf, ";");
     int counter = 0;
@@ -534,7 +636,7 @@ void setPositions(char* token, int cases, HWND hwnd)
     int x,y;
     int counter = 0;
     char* things [15];
-    if (!lost)
+    if (!game.lost)
     {
         switch (cases)
         {
@@ -543,9 +645,9 @@ void setPositions(char* token, int cases, HWND hwnd)
 
                 if(strcmp(token,"LIVES:0")==0)
                 {
-                        lost = true;
-                        playing = false;
-                        connected = false;
+                        game.lost = true;
+                        game.playing = false;
+                        game.connected = false;
                         endGame();
                 }
 
@@ -571,7 +673,7 @@ void setPositions(char* token, int cases, HWND hwnd)
                 x = atoi(cord);
                 cord = strtok(NULL, ",");
                 y = atoi(cord);
-                windowSetNewImg(x,y,0,hwnd);
+                windowSetNewImg(x,y,100,hwnd);
                 break;
             }
             case 4://enemies x,y
@@ -629,63 +731,84 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
     HBITMAP img;
     int height = 50;
     int width = 50;
+
+
     if (x != 0 && y != 0)
     {
+
         switch (imgCode)
         {
-        case 0: //player
+        case 100: //player
+
+            if(game.lastX == x)
+            {
+                printf("%d es igual que %d ",game.lastX,x);
+            }
+            else if(game.lastX  > x )
+            {
+                printf("%d es mayor que %d ",game.lastX,x);
+                game.right = false;
+            }
+            else if (game.lastX < x)
+            {
+                printf("%d es menor %d ",game.lastX,x);
+                game.right = true;
+            }
+
+            game.lastX = x;
+
             if (x >= 1010 && y >= 100)
             {
-               if(right)
+               if(game.right)
                 {
                     img = hPlayerUpRImg;
-                    printf("Diddy en %d y %d viendo derecha arriba\n",x,y);
+                    //printf("Diddy en %d y %d viendo derecha arriba\n",x,y);
                 }
                 else 
                 {
                     img = hPlayerUpLImg;
-                    printf("Diddy en %d y %d viendo izquierda arriba \n",x,y);
+                    //printf("Diddy en %d y %d viendo izquierda arriba \n",x,y);
                 }
             }
 
             else if (y >= 550 || y <= 230)
             {
-                if(right && moving)
+                if(game.right && game.moving)
                 {
                     img = hPlayerMoveRImg;
-                    printf("Diddy en %d y %d viendo derecha moviendose \n",x,y);
-                    moving = false;
+                    //printf("Diddy en %d y %d viendo derecha moviendose \n",x,y);
+                    //game.moving = false;
                 }
-                else if(right) 
+                else if(game.right) 
                 {
                     img = hPlayerRImg;
-                    printf("Diddy en %d y %d viendo derecha quieto\n",x,y);
-                    moving = true;
+                    //printf("Diddy en %d y %d viendo derecha quieto\n",x,y);
+                    //game.moving = true;
                 }
-                else if(!right && moving) 
+                else if(!game.right && game.moving) 
                 {
                     img = hPlayerMoveLImg;
-                    printf("Diddy en %d y %d viendo izquierda moviendose \n",x,y);
-                    moving = false;
+                    //printf("Diddy en %d y %d viendo izquierda moviendose \n",x,y);
+                    //game.moving = false;
                 }
                 else 
                 {
                     img = hPlayerLImg;
-                    printf("Diddy en %d y %d viendo izquierda quieto \n",x,y);
-                    moving = true;
+                    //printf("Diddy en %d y %d viendo izquierda quieto \n",x,y);
+                    //game.moving = true;
                 }
             }
             else
             {
-                if(right)
+                if(game.right)
                 {
                     img = hPlayerUpRImg;
-                    printf("Diddy en %d y %d en liana viendo derecha \n",x,y);
+                    //printf("Diddy en %d y %d en liana viendo derecha \n",x,y);
                 }
                 else 
                 {
                     img = hPlayerUpLImg;
-                    printf("Diddy en %d y %d en liana viendo izquierda\n",x,y);
+                    //printf("Diddy en %d y %d en liana viendo izquierda\n",x,y);
                 }
             }
             break;
@@ -695,28 +818,28 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
             img = hEnemyRedImg;
             height = 150;
             width = 150;
-            printf("Rojo en %d y %d\n",x,y);
+            //printf("Rojo en %d y %d\n",x,y);
             break;
         case 2: // blue enemy
             img = hEnemyBlueImg;
             height = 150;
             width = 150;
-            printf("Azul en %d y %d\n",x,y);
+            //printf("Azul en %d y %d\n",x,y);
             break;
         case 3: //fruit
             img = hFruitImg;
             height = 150;
             width = 150;
-            printf("Fruta en %d y %d\n",x,y);
+            //printf("Fruta en %d y %d\n",x,y);
             break;
 
         }
 
         HWND temp = CreateWindowW(L"Static",NULL,WS_VISIBLE|WS_CHILD|SS_BITMAP,x,y,width,height,hwnd,NULL,NULL,NULL);
         SendMessageW(temp,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)img);
-        elements[onScreenElem] = temp;
-        imgs[onScreenElem] = img;
-        onScreenElem++;
+        elements[game.onScreenElem] = temp;
+        imgs[game.onScreenElem] = img;
+        game.onScreenElem++;
     }
 }
 
@@ -736,19 +859,21 @@ void gameStart(HWND hwnd)
 
     if(strcmp(recvbuf,"pdenied")==0)
     {
-        sendToServer(7);
+        sendToServer(1);
+        game.connected = false;
         MessageBox(hwnd, "Sorry! The server already has a player, you can try other server or spectate the game. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
     else if(strcmp(recvbuf,"sdenied")==0)
     {
-        sendToServer(7);
+        sendToServer(1);
+        game.connected = false;
         MessageBox(hwnd, "Sorry! The server is still needs a player, no more spectators allowed. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
     else
     {
-        connected = true;
+        game.connected = true;
 
         hpoints = CreateWindowW(L"Static",L"POINTS:",WS_VISIBLE|WS_CHILD,900,20,100,20,hwnd,NULL,NULL,NULL);
         hlives = CreateWindowW(L"Static",L"LIVES:",WS_VISIBLE|WS_CHILD,1100,20,100,20,hwnd,NULL,NULL,NULL);
