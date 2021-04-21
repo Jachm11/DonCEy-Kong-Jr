@@ -19,7 +19,7 @@ public class Fruta
 
     public Boolean colision(Integer player_x, Integer player_y)
     {
-        if((player_x == this.x) && (player_y == this.y))
+        if((player_x == this.x) && (((this.y +20)> player_y) && ((this.y -20)< player_y)))
         {
             return true;
         }
@@ -38,7 +38,14 @@ public class Fruta
     {
         return puntos;
     }
-
+    public Integer getX()
+    {
+        return this.x;
+    }
+    public Integer getY()
+    {
+        return this.y;
+    }
 
     
 }
