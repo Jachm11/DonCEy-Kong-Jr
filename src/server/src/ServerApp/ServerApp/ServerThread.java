@@ -58,25 +58,25 @@ public class ServerThread extends Thread {
                 else if(text.equals("Tecla w"))
                 {
                     myHandler.miJuego.move_player("w");
-                    //writer.println(myHandler.miJuego.game_str());
+                    writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla a"))
                 {
                     myHandler.miJuego.move_player("a");
-                    //writer.println(myHandler.miJuego.game_str());
+                    writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla s"))
                 {
                     myHandler.miJuego.move_player("s");
-                    //writer.println(myHandler.miJuego.game_str());
+                    writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla d"))
                 {
                     myHandler.miJuego.move_player("d");
-                    //writer.println(myHandler.miJuego.game_str());
+                    writer.println(myHandler.miJuego.game_str());
                 }
                 else if(text.equals("player"))
                 {
