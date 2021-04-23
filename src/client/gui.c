@@ -21,95 +21,10 @@ HBITMAP hPlayerRImg, hPlayerLImg,hPlayerMoveRImg,hPlayerMoveLImg,hPlayerUpRImg,h
 HBITMAP hEnemyBlueImg,hEnemyRedImg,hFruitImg; //Enemies
 HWND hwnd;
 HWND hBg,hbutt_spect,hbutt_play,hbutt_exit,hbutt_srv1,hbutt_srv2,hgame,hpoints,hlives;
-HWND elements[40], past[40];
-HBITMAP imgs[40];
-
-/**
- * @brief Estructura que controla todos los flags del juego
- * 
- */
-struct gameState {
-
-    bool playing;
-    bool connected;
-    bool ready;
-    bool sent;
-    bool right;
-    bool up;
-    bool moving;
-    int onScreenElem;
-    int onScreenPastElem;
-    bool clean;
-    bool lost;
-    int lastX;
-    int animCount;
-
-};
+HWND elements[MAX_ELEM], past[MAX_ELEM];
 
 struct gameState game;
 
-/**
- * @brief Loop default de win32
- * 
- * @return LRESULT 
- */
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
-/**
- * @brief Agrega todos los concontroles a la interfaz grafica en la ventana HWND
- * 
- * 
- */
-void addControls(HWND);
-/**
- * @brief Carga todas las imagenes de la interfaz grafica
- * 
- */
-void loadImages();
-/**
- * @brief Funcion que se encarga de generar y enviar los mensajes al servidor
- * 
- */
-void sendToServer(int);
-/**
- * @brief Funcion que se encarga de leer los mensajes del servidor y cargalos al buffer (recvbuff)
- * 
- */
-void readFromServer();
-/**
- * @brief Inicializa un socket para un puerto espacifico determinado por el usuario al escoger un servidor
- * 
- */
-void initializeSocket(int);
-/**
- * @brief Funcion que se ejecuta cada vez que termina el timer. Elimina todas las imagenes cargadas en la iteracion pasada y carga las 
- * nuevas imagenes segun lo especificado por el servidor
- * 
- */
-void update(HWND);
-/**
- * @brief Funcion que esconde los botones de la pantalla de titulo y muestra el fondo y los botones de la seleccion de servidor
- * 
- */
-void serverSelect();
-/**
- * @brief Funcion que esconde los botones de la pantalla de seleccion de servidor y muestra el fondo y los textos de juego
- * 
- */
-void gameStart(HWND);
-/**
- * @brief Funcion que muestra una imagen determinada por el codigo de imagen y posiciones X y Y en Hwnd
- * 
- */
-void windowSetNewImg(int, int, int,HWND);
-/**
- * @brief Parser del mensaje del servidor. Extrae todos los detalles que deben ser mostrados durante el ciclo de update
- * 
- */
-void setPositions(char*, int , HWND);
-/**
- * @brief Muestra la pantalla de derrota
- * 
- */
 void endGame();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -566,20 +481,6 @@ void update(HWND hwnd)
     int iResult;
     const char *sendbuff = "Tecla\n";
     
-    //if(!game.sent)
-    //{
-        //iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );  
-
-        //if (iResult == SOCKET_ERROR)
-          //  {
-               // game.connected = false;
-               // printf("send failed with error: %d\n", WSAGetLastError());
-               // MessageBox(hwnd, "Failed: lost contact with server. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
-                //SendMessageW(hwnd,WM_CLOSE,0,0);
-            //} 
-    //}
-   // game.sent = false;
-
     if (!game.sent) sendToServer(100);
     readFromServer();
     game.sent = false;
@@ -838,7 +739,6 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
         HWND temp = CreateWindowW(L"Static",NULL,WS_VISIBLE|WS_CHILD|SS_BITMAP,x,y,width,height,hwnd,NULL,NULL,NULL);
         SendMessageW(temp,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)img);
         elements[game.onScreenElem] = temp;
-        imgs[game.onScreenElem] = img;
         game.onScreenElem++;
     }
 }
