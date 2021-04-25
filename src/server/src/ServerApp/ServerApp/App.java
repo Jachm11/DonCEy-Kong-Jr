@@ -15,7 +15,6 @@ public class App extends Canvas implements ActionListener
 {
 
     
-    //private static final int PORT = 1108;
     // JTextField
     private static App singleApp;
 
