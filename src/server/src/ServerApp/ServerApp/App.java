@@ -1,5 +1,7 @@
 
 package ServerApp;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.awt.*;
 import java.awt.BorderLayout;
 import java.io.*;
@@ -9,112 +11,149 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-public class App extends JFrame implements ActionListener
+public class App extends Canvas implements ActionListener
 {
 
+    
     //private static final int PORT = 1108;
     // JTextField
+    private static App singleApp;
+
+    private static Font f;
     static ImageIcon icon;
     static String gameObj[] = {"enemigo azul", "enemigo rojo", "fruta"};
     static String gameOpt[] = {"Crear", "Eliminar"};
     static Integer gameLiana[] = {1,2,3,4,5,6,7,8,9,10};
     static JTextField textJ1;
     static JTextField textJ2;
-    
-    static JComboBox c;
-    // JFrame
     static JFrame frame;
- 
-    // JButton
     static JButton buttonJ1;
     static JButton buttonJ2;
-
     static JSlider sliderJ1;
     static JSlider sliderJ2;
-
     static JSpinner objJ1, optJ1, liaJ1;
     static JSpinner objJ2, optJ2, liaJ2;
- 
-    // label to display text
     static JLabel labelJ1;
     static JLabel labelJ2;
-
     static Juego juego1;
     static Juego juego2;
 
     static ServerHandler server1;
     static ServerHandler server2;
-    // default constructor
+
     App()
     {
         juego1 = new Juego();
         juego2 = new Juego();
+        f = new Font("Impact", Font.PLAIN, 16);
     }
-    public static void main(String[] args)
-    {  
-        App app = new App();
-        
-        frame = new JFrame("textfield");
-        JLabel label = new JLabel("en liana");
-        labelJ1 = new JLabel("nothing entered");
-        buttonJ1 = new JButton("submit");
 
-        labelJ2 = new JLabel("nothing entered");
-        buttonJ2 = new JButton("submit2");
+    public static App getInstance()
+    {
+        if(singleApp == null)
+        {
+            singleApp = new App();
+        }
+        return singleApp;
+    }
+    public static void main(String[] args) throws MalformedURLException, IOException
+    {  
+       
+        App app = App.getInstance();
+        Icon icon = new ImageIcon("ServerApp/img/blue-arrow.jpg");
+        frame = new JFrame("Server");
+        JLabel label = new JLabel("en liana");
+        label.setFont(f);
+        label.setForeground(new Color(179,207,221));
+
+        JLabel label2 = new JLabel("en liana");
+        label2.setFont(f);
+        label2.setForeground(new Color(179,207,221));
+
+        buttonJ1 = new JButton("Enviar a J1");
+        buttonJ1.setBackground(new Color(179,207,221));
+        buttonJ1.setForeground(Color.BLACK);
+
+        buttonJ2 = new JButton("Enviar a J2");
+        buttonJ2.setBackground(new Color(179,207,221));
+        buttonJ2.setForeground(Color.BLACK);
 
         buttonJ1.addActionListener(app);
         buttonJ2.addActionListener(app);
 
-        textJ1 = new JTextField(16);
-        textJ2 = new JTextField(16);
+        
 
         sliderJ1 = new JSlider(JSlider.VERTICAL);
+        sliderJ1.setBackground(Color.BLACK);
+        sliderJ1.setForeground(new Color(179,207,221));
         sliderJ1.setMinorTickSpacing(10);
-        sliderJ1.setPaintTicks(true);
         sliderJ1.setPaintLabels(true);
         sliderJ1.setSnapToTicks(true);
         sliderJ1.setInverted(true);
         sliderJ1.setLabelTable(sliderJ1.createStandardLabels(10));
+        sliderJ1.setFont(f);
 
         sliderJ2 = new JSlider(JSlider.VERTICAL);
+        sliderJ2.setBackground(Color.BLACK);
+        sliderJ2.setForeground(new Color(179,207,221));
         sliderJ2.setMinorTickSpacing(10);
-        sliderJ2.setPaintTicks(true);
         sliderJ2.setPaintLabels(true);
         sliderJ2.setSnapToTicks(true);
         sliderJ2.setInverted(true);
         sliderJ2.setLabelTable(sliderJ2.createStandardLabels(10));
+        sliderJ2.setFont(f);
         
         
         objJ1 = new JSpinner(new SpinnerListModel (gameObj));
+        setSpinnerProperties(objJ1, 8);
+
         optJ1 = new JSpinner(new SpinnerListModel (gameOpt));
+        setSpinnerProperties(optJ1, 5);
+
         liaJ1 = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        setSpinnerProperties(liaJ1 , 3);
 
         objJ2 = new JSpinner(new SpinnerListModel (gameObj));
-        optJ2 = new JSpinner(new SpinnerListModel (gameOpt));
-        liaJ2 = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        setSpinnerProperties(objJ2, 8);
 
-        JPanel panelJ1 = new JPanel();
+        optJ2 = new JSpinner(new SpinnerListModel (gameOpt));
+        setSpinnerProperties(optJ2, 5);
+
+        liaJ2 = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        setSpinnerProperties(liaJ2, 3);
+
+        
+        
+        //JPanel panelJ1 = new JPanel();
+        ImagePanel panelJ1 = new ImagePanel(
+            new ImageIcon("ServerApp/img/fondo.jpg").getImage());
+        panelJ1.setPreferredSize(new Dimension(1000, 350));
+        panelJ1.setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
         panelJ1.add(optJ1);
         panelJ1.add(objJ1);
         panelJ1.add(label);
         panelJ1.add(liaJ1);
         panelJ1.add(sliderJ1);
         panelJ1.add(buttonJ1);
-        panelJ1.add(labelJ1);
 
-        JPanel panelJ2 = new JPanel();
+        ImagePanel panelJ2 = new ImagePanel(
+            new ImageIcon("ServerApp/img/fondo2.jpg").getImage());
+        panelJ2.setPreferredSize(new Dimension(1000, 350));
+        panelJ2.setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
         panelJ2.add(optJ2);
         panelJ2.add(objJ2);
-        panelJ2.add(label);
+        panelJ2.add(label2);
         panelJ2.add(liaJ2);
         panelJ2.add(sliderJ2);
         panelJ2.add(buttonJ2);
-        panelJ2.add(labelJ2);
 
-
-        frame.add(panelJ1, BorderLayout.PAGE_START);
-        frame.add(panelJ2, BorderLayout.PAGE_END);
-        frame.setSize(1000, 600);
+        
+        
+        
+        
+        frame.add(panelJ1, BorderLayout.NORTH);
+        frame.add(panelJ2, BorderLayout.CENTER);
+        frame.setPreferredSize(new Dimension(1000, 700));
         frame.pack();
         frame.setVisible(true);
 
@@ -126,6 +165,14 @@ public class App extends JFrame implements ActionListener
 
 
     }
+    public static void setSpinnerProperties(JSpinner spinner, Integer width)
+    {
+        spinner.setFont(f);
+        ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setColumns(width);
+        ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setEditable(false);;
+        spinner.getEditor().getComponent(0).setBackground(Color.BLACK);
+        spinner.getEditor().getComponent(0).setForeground(new Color(179,207,221));
+    }
     public void stateChanged(ChangeEvent e){}
     @Override
     public void actionPerformed(ActionEvent e) 
@@ -134,27 +181,22 @@ public class App extends JFrame implements ActionListener
         Integer y_percentage = 0;
         String opcion = "";
         String objeto = "";
-        String action = "";
         String s = e.getActionCommand();
         Juego juego = new Juego();
-        if (s.equals("submit")) 
+        if (s.equals("Enviar a J1")) 
         {
             x_liana = (Integer)liaJ1.getValue();
             y_percentage = sliderJ1.getValue();
             opcion = (String)optJ1.getValue();
             objeto = (String)objJ1.getValue();
-            action =  opcion  + "," + objeto + "," + x_liana + "," + y_percentage; 
-            labelJ1.setText(action);
             juego = juego1;
         }
-        if (s.equals("submit2")) 
+        if (s.equals("Enviar a J2")) 
         {
             x_liana = (Integer)liaJ2.getValue();
             y_percentage = sliderJ2.getValue();
             opcion = (String)optJ2.getValue();
             objeto = (String)objJ2.getValue();
-            action =  opcion  + "," + objeto + "," + x_liana + "," + y_percentage; 
-            labelJ2.setText(action);
             juego = juego2;
         }
             
@@ -207,6 +249,32 @@ public class App extends JFrame implements ActionListener
         
         
     }
+   
       
     
+}
+
+class ImagePanel extends JPanel
+{
+private static final long serialVersionUID = 1L;
+private Image image = null;
+private int iWidth2;
+private int iHeight2;
+
+public ImagePanel(Image image)
+{
+    this.image = image;
+    this.iWidth2 = image.getWidth(this)/2;
+    this.iHeight2 = image.getHeight(this)/2;
+}
+
+
+public void paintComponent(Graphics g)
+{
+    super.paintComponent(g);
+    if (image != null)
+    {
+        g.drawImage(image, 0, 0, null);
+    }
+}
 }

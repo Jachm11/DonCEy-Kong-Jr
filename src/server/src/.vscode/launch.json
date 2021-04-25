@@ -9,6 +9,13 @@
             "name": "Launch App",
             "request": "launch",
             "mainClass": "ServerApp.App",
+            "projectName": "src_411493e"
+        },
+        {
+            "type": "java",
+            "name": "Launch App",
+            "request": "launch",
+            "mainClass": "ServerApp.App",
             "projectName": "src_37495660"
         },
         {

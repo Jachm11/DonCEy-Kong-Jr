@@ -3,7 +3,7 @@ package ServerApp;
 
 public class Cocodrilo 
 {
-    protected Integer velocidad;
+    static protected Integer velocidad;
     protected Integer[] liana;
     protected String posicion;
     protected Integer x;
@@ -22,9 +22,9 @@ public class Cocodrilo
         
     }
     public void move(){}
-    public void resetVelocidad()
+    public void setVelocidad(Integer speed)
     {
-        velocidad = 5;
+        velocidad = speed;
     }
     public void addVelocidad()
     {

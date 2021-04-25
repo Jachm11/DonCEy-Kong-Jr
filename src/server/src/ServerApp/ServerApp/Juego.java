@@ -8,6 +8,7 @@ public class Juego
 {
     public Jugador jugador;
     Integer puntos;
+    Integer vel;
     LinkedList<Cocodrilo> cocodrilos;
     LinkedList<Fruta> frutas;
     LinkedList<Liana> lianas ;
@@ -15,6 +16,7 @@ public class Juego
     Juego()
     {
         puntos = 0;
+        vel = 5;
         jugador = new Jugador();
         lianas =  new LinkedList<Liana>();
         cocodrilos =  new LinkedList<Cocodrilo>();
@@ -78,7 +80,6 @@ public class Juego
     }
     public void crear_cocodrilo(String tipo, Integer liana, Integer y)
     {
-        
         if(tipo.equals("1"))
         {
             crear_rojo(liana, y);
@@ -99,6 +100,7 @@ public class Juego
         Integer pos_y = (newY/10)*10;
         
         Rojo rojo = new Rojo(temp.getPosicion()[0],pos_y,temp.getPosicion());
+        rojo.setVelocidad(vel);
         cocodrilos.add(rojo);
 
        
@@ -112,6 +114,7 @@ public class Juego
         Integer pos_y = (newY/10)*10;
 
         Azul azul = new Azul(temp.getPosicion()[0],pos_y,temp.getPosicion());
+        azul.setVelocidad(vel);
         cocodrilos.add(azul);
     }
 
@@ -209,10 +212,18 @@ public class Juego
             System.out.println("Won!");
             jugador.won();
             puntos = puntos + 1000;
-            for(int i = 0; i< cocodrilos.size();i++)
+            //for(int i = 0; i< cocodrilos.size();i++)
+            //{
+            if (cocodrilos.isEmpty())
             {
-                cocodrilos.get(i).addVelocidad();
             }
+            else
+            {
+                cocodrilos.get(0).addVelocidad();
+                vel = cocodrilos.get(0).getVelocidad();
+            }
+                
+            //}
 
         }
     }
