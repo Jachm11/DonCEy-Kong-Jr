@@ -1,5 +1,4 @@
-package ServerApp;
-
+package Game;
 
 public class Cocodrilo 
 {

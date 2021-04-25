@@ -1,4 +1,4 @@
-package ServerApp;
+package Game;
 
 public class Liana 
 {

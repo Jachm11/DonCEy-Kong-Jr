@@ -1,0 +1,1 @@
+g++ gui.c -o DonceyKongJr.exe -lgdi32 -lwsock32

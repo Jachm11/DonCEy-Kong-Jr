@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+
 /**
  * This thread is responsible to handle client connection.
  *
@@ -49,7 +50,6 @@ public class ServerThread extends Thread {
  
             do {
                 text = reader.readLine();
-                System.out.println(text);
                 if(text.equals("Tecla"))
                 {
                     writer.println(myHandler.miJuego.game_str()); 
@@ -58,24 +58,28 @@ public class ServerThread extends Thread {
                 else if(text.equals("Tecla w"))
                 {
                     myHandler.miJuego.move_player("w");
+                    System.out.println(text);
                     writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla a"))
                 {
                     myHandler.miJuego.move_player("a");
+                    System.out.println(text);
                     writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla s"))
                 {
                     myHandler.miJuego.move_player("s");
+                    System.out.println(text);
                     writer.println(myHandler.miJuego.game_str());
 
                 }
                 else if(text.equals("Tecla d"))
                 {
                     myHandler.miJuego.move_player("d");
+                    System.out.println(text);
                     writer.println(myHandler.miJuego.game_str());
                 }
                 else if(text.equals("player"))
@@ -100,7 +104,7 @@ public class ServerThread extends Thread {
                     }
                 }
 
-            } while (testImput(text));
+            } while (text != null || text != "bye");
             myHandler.count = myHandler.count - 1;
             if(imPlayer){
                 myHandler.player = false;
@@ -108,6 +112,10 @@ public class ServerThread extends Thread {
             socket.close();
 
         } catch (IOException ex) {
+            myHandler.count = myHandler.count - 1;
+            if(imPlayer){
+                myHandler.player = false;
+            }
             System.out.println("Server exception: " + ex.getMessage());
             ex.printStackTrace();
         }

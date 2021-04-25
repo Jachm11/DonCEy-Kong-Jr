@@ -1,5 +1,5 @@
-
 package ServerApp;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.awt.*;
@@ -8,9 +8,9 @@ import java.io.*;
 import javax.imageio.ImageIO;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
+import Game.*;
 public class App extends Canvas implements ActionListener
 {
 
@@ -55,12 +55,14 @@ public class App extends Canvas implements ActionListener
         }
         return singleApp;
     }
+
     public static void main(String[] args) throws MalformedURLException, IOException
     {  
        
         App app = App.getInstance();
-        Icon icon = new ImageIcon("ServerApp/img/blue-arrow.jpg");
-        frame = new JFrame("Server");
+        ImageIcon icon = new ImageIcon("img/ico.png");
+        frame = new JFrame("DonCEy Kong Jr. Server");
+        frame.setIconImage(icon.getImage());
         JLabel label = new JLabel("en liana");
         label.setFont(f);
         label.setForeground(new Color(179,207,221));
@@ -125,7 +127,7 @@ public class App extends Canvas implements ActionListener
         
         //JPanel panelJ1 = new JPanel();
         ImagePanel panelJ1 = new ImagePanel(
-            new ImageIcon("ServerApp/img/fondo.jpg").getImage());
+            new ImageIcon("img/fondo.jpg").getImage());
         panelJ1.setPreferredSize(new Dimension(1000, 350));
         panelJ1.setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
         panelJ1.add(optJ1);
@@ -136,7 +138,7 @@ public class App extends Canvas implements ActionListener
         panelJ1.add(buttonJ1);
 
         ImagePanel panelJ2 = new ImagePanel(
-            new ImageIcon("ServerApp/img/fondo2.jpg").getImage());
+            new ImageIcon("img/fondo2.jpg").getImage());
         panelJ2.setPreferredSize(new Dimension(1000, 350));
         panelJ2.setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
         panelJ2.add(optJ2);

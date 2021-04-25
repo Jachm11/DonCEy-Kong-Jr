@@ -15,7 +15,7 @@
 #define VK_D                 0x44
 #define ID_TIMER             1
 #define MAX_ELEM             40
-
+#define IDI_ICON1            101
 /**
  * @brief Loop default de win32
  * 
@@ -24,7 +24,6 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM , LPARAM);
 /**
  * @brief Agrega todos los concontroles a la interfaz grafica en la ventana HWND
- * 
  * 
  */
 void addControls(HWND);
@@ -35,16 +34,17 @@ void addControls(HWND);
 void loadImages();
 /**
  * @brief Funcion que se encarga de generar y enviar los mensajes al servidor
- * 
+ * @param int codigo del mensaje a enviar
  */
 void sendToServer(int);
 /**
  * @brief Funcion que se encarga de leer los mensajes del servidor y cargalos al buffer (recvbuff)
- * 
+ *
  */
 void readFromServer();
 /**
  * @brief Inicializa un socket para un puerto espacifico determinado por el usuario al escoger un servidor
+ * @param int puerto donde incializar el socket
  * 
  */
 void initializeSocket(int);
@@ -66,11 +66,16 @@ void serverSelect();
 void gameStart(HWND);
 /**
  * @brief Funcion que muestra una imagen determinada por el codigo de imagen y posiciones X y Y en Hwnd
+ * @param int posicion en x
+ * @param int posicion en y
+ * @param int codigo de la imagen
  * 
  */
 void windowSetNewImg(int, int, int,HWND);
 /**
  * @brief Parser del mensaje del servidor. Extrae todos los detalles que deben ser mostrados durante el ciclo de update
+ * @param char* token con la informacio del objeto de juego
+ * @param int id del objeto de juego
  * 
  */
 void setPositions(char*, int , HWND);

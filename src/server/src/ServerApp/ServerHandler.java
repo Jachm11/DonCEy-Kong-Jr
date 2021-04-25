@@ -2,14 +2,15 @@ package ServerApp;
 
 import java.net.*;
 import java.io.*;
+import Game.*;
+
 
 public class ServerHandler extends Thread {
     
     public Juego miJuego;
     public Boolean player;
     public Integer count;
-
-    private Integer port;
+    public Integer port;
     
 
     public ServerHandler(Integer port, Juego miJuego) {
@@ -29,6 +30,7 @@ public class ServerHandler extends Thread {
                 Socket socket = serverSocket.accept();
                 System.out.println("New client connected to port "+port);
                 count = count + 1 ;
+                System.out.println(count);
                 ServerThread thread = new ServerThread(socket,this);
                 thread.start();
 

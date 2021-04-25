@@ -1,8 +1,7 @@
-package ServerApp;
+package Game;
 
 import java.util.LinkedList;
 import java.lang.Integer;
-
 
 public class Juego 
 {
@@ -13,7 +12,7 @@ public class Juego
     LinkedList<Fruta> frutas;
     LinkedList<Liana> lianas ;
 
-    Juego()
+    public Juego()
     {
         puntos = 0;
         vel = 5;
@@ -326,8 +325,5 @@ public class Juego
         
     }
 
-    
-    
-    
     
 }

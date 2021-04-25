@@ -39,12 +39,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
     wc.hInstance     = hInstance;
-    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hIcon         = (HICON)LoadImageW(NULL,L"imgs\\ico.ico",(IMAGE_ICON),0,0,LR_LOADFROMFILE);
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = g_szClassName;
-    wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hIconSm       = (HICON)LoadImageW(NULL,L"imgs\\ico.ico",(IMAGE_ICON),0,0,LR_LOADFROMFILE);
 
     game.playing          = false;
     game.connected        = false;
@@ -70,7 +70,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     hwnd = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         g_szClassName,
-        "DonCEy Kong Jr. VS",
+        "DonCEy Kong Jr. Player",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX ,
         CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
         NULL, NULL, hInstance, NULL);
@@ -229,14 +229,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
   
 		case WM_CLOSE:
-            //sendToServer(1);
             closesocket(cSocket);
             WSACleanup();   
 			DestroyWindow(hwnd);
 		    break;
 
 		case WM_DESTROY:
-            //sendToServer(1);
             closesocket(cSocket);
             WSACleanup();
 			PostQuitMessage(0);
@@ -384,27 +382,22 @@ void sendToServer(int key)
         {
             case VK_W:
                 iResult = send( cSocket, sendw, (int)strlen(sendw), 0 );
-                printf("msg w enviado");
                 game.sent = true;
                 break;
             case VK_A:
                 iResult = send( cSocket, senda, (int)strlen(senda), 0 );
-                printf("msg enviado");
                 game.sent = true;
                 break;
             case VK_S:
                 iResult = send( cSocket, sends, (int)strlen(sends), 0 );
-                printf("msg enviado");
                 game.sent = true;
                 break;
             case VK_D:
                 iResult = send( cSocket, sendd, (int)strlen(sendd), 0 );
-                printf("msg enviado");
                 game.sent = true;
                 break;
             case VK_SPACE:
                 iResult = send( cSocket, sende, (int)strlen(sende), 0 );
-                printf("msg enviado");
                 game.sent = true;
                 break;  
         }
@@ -416,25 +409,23 @@ void sendToServer(int key)
         if(game.playing)
         {
             iResult = send( cSocket, sendplayer, (int)strlen(sendplayer), 0 );
-            printf("msg enviado");
+            printf("SEND IM PLAYER");
             
         }
         else if(!game.playing)
         {
             iResult = send( cSocket, sendspectator, (int)strlen(sendspectator), 0 );
-            printf("msg enviado");
+            printf("SEND IM spect");
         }
         break;
     case 1:
         iResult = send( cSocket, sendbye, (int)strlen(sendbye), 0 );
-        printf("msg enviado");
         break;
 
     default:
         if(!game.sent)
         {
             iResult = send( cSocket, sendbuff, (int)strlen(sendbuff), 0 );
-            printf("msg update enviado");
         }
         break;   
     }
@@ -459,7 +450,6 @@ void readFromServer()
 
     if ( iResult > 0 )
     {
-        printf("Bytes received: %d\n", iResult);
         printf(recvbuf);
     }
     else if ( iResult == 0 )
@@ -643,16 +633,13 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
 
             if(game.lastX == x)
             {
-                printf("%d es igual que %d ",game.lastX,x);
             }
             else if(game.lastX  > x )
             {
-                printf("%d es mayor que %d ",game.lastX,x);
                 game.right = false;
             }
             else if (game.lastX < x)
             {
-                printf("%d es menor %d ",game.lastX,x);
                 game.right = true;
             }
 
@@ -663,12 +650,10 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
                if(game.right)
                 {
                     img = hPlayerUpRImg;
-                    //printf("Diddy en %d y %d viendo derecha arriba\n",x,y);
                 }
                 else 
                 {
                     img = hPlayerUpLImg;
-                    //printf("Diddy en %d y %d viendo izquierda arriba \n",x,y);
                 }
             }
 
@@ -677,26 +662,19 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
                 if(game.right && game.moving)
                 {
                     img = hPlayerMoveRImg;
-                    //printf("Diddy en %d y %d viendo derecha moviendose \n",x,y);
-                    //game.moving = false;
                 }
                 else if(game.right) 
                 {
                     img = hPlayerRImg;
-                    //printf("Diddy en %d y %d viendo derecha quieto\n",x,y);
-                    //game.moving = true;
                 }
                 else if(!game.right && game.moving) 
                 {
                     img = hPlayerMoveLImg;
-                    //printf("Diddy en %d y %d viendo izquierda moviendose \n",x,y);
-                    //game.moving = false;
+
                 }
                 else 
                 {
                     img = hPlayerLImg;
-                    //printf("Diddy en %d y %d viendo izquierda quieto \n",x,y);
-                    //game.moving = true;
                 }
             }
             else
@@ -704,12 +682,10 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
                 if(game.right)
                 {
                     img = hPlayerUpRImg;
-                    //printf("Diddy en %d y %d en liana viendo derecha \n",x,y);
                 }
                 else 
                 {
                     img = hPlayerUpLImg;
-                    //printf("Diddy en %d y %d en liana viendo izquierda\n",x,y);
                 }
             }
             break;
@@ -719,19 +695,16 @@ void windowSetNewImg(int x, int y, int imgCode,HWND hwnd )
             img = hEnemyRedImg;
             height = 150;
             width = 150;
-            //printf("Rojo en %d y %d\n",x,y);
             break;
         case 2: // blue enemy
             img = hEnemyBlueImg;
             height = 150;
             width = 150;
-            //printf("Azul en %d y %d\n",x,y);
             break;
         case 3: //fruit
             img = hFruitImg;
             height = 150;
             width = 150;
-            //printf("Fruta en %d y %d\n",x,y);
             break;
 
         }
@@ -756,15 +729,15 @@ void serverSelect()
 void gameStart(HWND hwnd)
 {
     
-
-    if(strcmp(recvbuf,"pdenied")==0)
+    printf("Comparando %s con %s",recvbuf,"pdenied");
+    if(strcmp(recvbuf,"pdenied")==1)
     {
         sendToServer(1);
         game.connected = false;
         MessageBox(hwnd, "Sorry! The server already has a player, you can try other server or spectate the game. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
-    else if(strcmp(recvbuf,"sdenied")==0)
+    else if(strcmp(recvbuf,"sdenied")==1)
     {
         sendToServer(1);
         game.connected = false;
