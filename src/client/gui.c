@@ -495,7 +495,7 @@ void update(HWND hwnd)
     //Erase past elements off the window
     for (int i = 0; i < game.onScreenPastElem ; i++)
     {
-        ShowWindow(past[i],SW_HIDE);
+        DestroyWindow(past[i]);
     }   
 
     //Move current elements to past
@@ -734,7 +734,7 @@ void gameStart(HWND hwnd)
     {
         sendToServer(1);
         game.connected = false;
-        MessageBox(hwnd, "Sorry! The server already has a player, you can try other server or spectate the game. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
+        MessageBox(hwnd, "Sorry! The server already has a player, you can try another server or spectate the game. The application will close", "Error", MB_OK | MB_ICONEXCLAMATION);
         SendMessageW(hwnd,WM_CLOSE,0,0);
     }
     else if(strcmp(recvbuf,"sdenied")==1)
