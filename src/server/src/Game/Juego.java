@@ -3,6 +3,9 @@ package Game;
 import java.util.LinkedList;
 import java.lang.Integer;
 
+/**
+* Clase para crear un nuevo Juego
+*/
 public class Juego 
 {
     public Jugador jugador;
@@ -11,7 +14,9 @@ public class Juego
     LinkedList<Cocodrilo> cocodrilos;
     LinkedList<Fruta> frutas;
     LinkedList<Liana> lianas ;
-
+    /**
+	* Constructor de juego
+	*/
     public Juego()
     {
         puntos = 0;
@@ -22,6 +27,10 @@ public class Juego
         frutas =  new LinkedList<Fruta>();
         crear_lianas();
     }
+    /**
+	* Función para mover al jugador (W hacia arriba, S hacia abajo, A hacia la izquierda y D hacia la derecha)
+	* @param command dircción de movimiento
+	*/
     public void move_player(String command)
     {
         Liana liana_actual = getLiana(jugador.liana);
@@ -67,6 +76,11 @@ public class Juego
             
         }
     }
+    /**
+	* Funcion para crear una fruta
+	* @param liana numero de liana al que se quiere crear
+	* @param y posicion en la liana
+	*/
     public void crear_fruta(Integer liana, Integer y)
     {
         Liana temp= getLiana(liana);
@@ -77,6 +91,12 @@ public class Juego
         Fruta fruta = new Fruta(temp.getPosicion()[0],pos_y);
         frutas.add(fruta);
     }
+     /**
+	* Funcion para crear un enemigo
+    * @param tipo 1 si es enemigo rojo y 2 si es azul
+	* @param liana numero de liana al que se quiere crear
+	* @param y posicion en la liana
+	*/
     public void crear_cocodrilo(String tipo, Integer liana, Integer y)
     {
         if(tipo.equals("1"))
@@ -90,6 +110,11 @@ public class Juego
             System.out.println("Creando cocodrilo azul");
         }
     }
+     /**
+	* Funcion para crear un enemigo rojo
+	* @param liana numero de liana al que se quiere crear
+	* @param y posicion en la liana
+	*/
     public void crear_rojo(Integer liana, Integer y)
     {
         Liana temp= getLiana(liana);
@@ -104,6 +129,11 @@ public class Juego
 
        
     }
+    /**
+	* Funcion para crear un enemigo azul
+	* @param liana numero de liana al que se quiere crear
+	* @param y posicion en la liana
+	*/
     public void crear_azul(Integer liana, Integer y)
     {
         Liana temp= getLiana(liana);
@@ -116,7 +146,11 @@ public class Juego
         azul.setVelocidad(vel);
         cocodrilos.add(azul);
     }
-
+    /**
+	* Funcion para eliminar un enemigo
+    * @param tipo 1 si es enemigo rojo y 2 si es azul
+	* @param liana numero de liana al que se quiere crear
+	*/
     public void eliminar_cocodrilo(String tipo, Integer liana)
     {
         
@@ -137,6 +171,11 @@ public class Juego
         }
 
     }
+    /**
+	* Funcion para eliminar una fruta
+	* @param liana numero de liana al que se quiere crear
+	* @param y posicion en la liana
+	*/
     public void eliminar_fruta(Integer liana, Integer y)
     {
         
@@ -160,7 +199,9 @@ public class Juego
         }
 
     }
-
+    /**
+	* Funcion para crear las 10 lianas del juego
+	*/
     public void crear_lianas()
     {
         
@@ -186,7 +227,11 @@ public class Juego
         this.lianas.add(liana9);
         this.lianas.add(liana10);
     }
-
+     /**
+	* Funcion para obtener una liana de la lista
+	* @param ID de la liana que se esta buscando
+	* @return la liana con el ID indicado
+	*/
     public Liana getLiana(Integer ID)
     {
         Liana temporal = null;
@@ -204,6 +249,9 @@ public class Juego
         //System.out.println(temporal.getId());
         return temporal;
     }
+     /**
+	* Funcion para saber si el jugador ganó para sumarle los puntos, devolverlo a la posicion inicial y aumentar la velocidad de los enemigos
+	*/
     private void won()
     {
         if(jugador.x<610 && jugador.y<=160)
@@ -226,6 +274,10 @@ public class Juego
 
         }
     }
+    /**
+	* Función para obtener un string del juego
+	* @return un string con los puntos, las vidas, la posicion del jugador enemigos y frutas
+	*/
     public String game_str()
     {
         String vidas_str = "LIVES:" + jugador.getVidas();
@@ -235,7 +287,10 @@ public class Juego
         
         return vidas_str + ";"+ puntos_str + ";" + jugador_str + ";" + cocodrilos_str() + ";" + frutas_str();
     }
-
+    /**
+	* Función para obtener un string con las posiciones de las frutas y eliminar en caso de colision con el jugador
+	* @return un string con las posiciones de las frutas existentes
+	*/
     public String frutas_str()
     {
         if(frutas.isEmpty())
@@ -275,6 +330,10 @@ public class Juego
 
 
     }
+    /**
+	* Función para obtener un string con las posiciones de los enemigos despues de moverlos y llamar a la funcion hit() de jugador en caso de colision
+	* @return un string con las posiciones de los enemigos existentes
+	*/
     public String cocodrilos_str()
     {
         if(cocodrilos.isEmpty())
