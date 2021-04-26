@@ -11,6 +11,9 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import Game.*;
+/**
+* Clase Singleton para controlar y crear la interfaz del servidor
+*/
 public class App extends Canvas implements ActionListener
 {
 
@@ -39,14 +42,18 @@ public class App extends Canvas implements ActionListener
 
     static ServerHandler server1;
     static ServerHandler server2;
-
+    /**
+    * Clase constructora de App
+    */
     App()
     {
         juego1 = new Juego();
         juego2 = new Juego();
         f = new Font("Impact", Font.PLAIN, 16);
     }
-
+    /**
+    * Clase para obtener la instancia de App
+    */
     public static App getInstance()
     {
         if(singleApp == null)
@@ -55,7 +62,9 @@ public class App extends Canvas implements ActionListener
         }
         return singleApp;
     }
-
+    /**
+    * Main para crear la interfaz gráfica
+    */
     public static void main(String[] args) throws MalformedURLException, IOException
     {  
        
@@ -166,6 +175,11 @@ public class App extends Canvas implements ActionListener
 
 
     }
+    /**
+    * Funcion para configurar las propiedades de un spinner
+    * @param spinner
+    * @param width ancho del spinner
+    */
     public static void setSpinnerProperties(JSpinner spinner, Integer width)
     {
         spinner.setFont(f);
@@ -175,6 +189,11 @@ public class App extends Canvas implements ActionListener
         spinner.getEditor().getComponent(0).setForeground(new Color(179,207,221));
     }
     public void stateChanged(ChangeEvent e){}
+    
+     /**
+    * Evento al presionar los botones de la interfaz, toma todos los datos de los componentes y realiza la acción respectiva
+    * @param e evento
+    */
     @Override
     public void actionPerformed(ActionEvent e) 
     {
