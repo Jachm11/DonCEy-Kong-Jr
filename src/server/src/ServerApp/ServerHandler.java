@@ -4,7 +4,9 @@ import java.net.*;
 import java.io.*;
 import Game.*;
 
-
+/**
+* Clase para controlar a los clientes del servidor según el puerto
+*/
 public class ServerHandler extends Thread {
     
     public Juego miJuego;
@@ -12,14 +14,20 @@ public class ServerHandler extends Thread {
     public Integer count;
     public Integer port;
     
-
+     /**
+    * Constructor de ServerHandler
+    * @param port puerto del cliente
+    * @param niJuego juego del cliente
+    */
     public ServerHandler(Integer port, Juego miJuego) {
         this.port = port;
         this.miJuego = miJuego;
         this.player = false;
         count = 1;
     }
-
+    /**
+    * Inicialización del socket
+    */
     public void run(){
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
